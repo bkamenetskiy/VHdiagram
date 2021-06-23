@@ -72,71 +72,78 @@ public class SolverVelocity {
         return dataArray;
     }
 
-}
 
+    public float[][] getVelocity(float[][] dataVelocity, float[][] dataAtmParam, int[] serviceBlockDimension, int[] serviceInternalOffsets, float inputVelocity, float maxM, int serviceLimitType, float [][] blockСompare) {
 
-/*
-    public float[][] getVelocity(float[][] dataArray, int[] serviceDimension, int[] serviceCSYS, int serviceBlockOffset, float casV, float maxM, int limitType) {
+        // V (cas), м/с
+        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+            dataVelocity[row][serviceInternalOffsets[6]] = inputVelocity;
+        }
 
-        // serviceBlockOffset - индекс начала блока скорости; numIterate - высота массива; dataColumn - ширина блока скорости
-        int numIterate = serviceDimension[0];
-        int dataColumn = serviceCSYS [1];
+        // M
+        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
 
-        // локальная система координат в блоке
-        // берем столбец
-        for (int column = serviceBlockOffset; column <= serviceBlockOffset + serviceCSYS [1]; column++) {
+            // Ms (без верхнего ограничения по маху)
+            if (serviceLimitType == 0) {
+                dataVelocity[row][serviceInternalOffsets[7]] = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
+            }
 
-            // заполняем сроки согласно ключа
-            for (int row = 0; row <= serviceDimension[0]; row++) {
+            // Md, Mc (директивное ограничение максимальным махом)
+            if (serviceLimitType == 1) {
+                float Md = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
+                dataVelocity[row][serviceInternalOffsets[7]] = Math.min(Md, maxM);
+            }
 
-                if (column == serviceBlockOffset + serviceCSYS[3]) {
-                    dataArray[row][column] = casV;                                                                      // V (cas), м/с
-                }
-                if (column == serviceBlockOffset + serviceCSYS[4]) {                                                    // M
-
-                    // проверка ограничений по маху
-                    if (limitType == 0) {
-                        dataArray[row][column] = velocityCalc.getVcasToMach(dataArray[row][2], casV);                   // Ms (без верхнего ограничения по маху)
-                    }
-                    if (limitType == 1) {
-                        float Md = velocityCalc.getVcasToMach(dataArray[row][2], casV);                                 // Md, Mc (директивное ограничение максимальным махом)
-                        dataArray[row][column] = Math.min(Md, maxM);
-                    }
-                    if (limitType == 2) {
-                        float Ma = velocityCalc.getVcasToMach(dataArray[row][2], casV);                                 // Ma (ограничение другим махом)
-                        if (Ma <= dataArray[row][(int) maxM]) {
-                            dataArray[row][column] = Ma;
-                        } else {
-                            dataArray[row][column] = -1.0f;
-                        }
-                    }
-                }
-                if (column == serviceBlockOffset + serviceCSYS[5]) {
-                    if (dataArray [row] [serviceBlockOffset + 1] == -1.0f){
-                        dataArray[row][column] = -1.0f;
-                    } else {
-                        dataArray[row][column] = velocityCalc.getMachToVtas(dataArray[row][4], dataArray[row][serviceBlockOffset + 1]);    // V (tas), м/с
-                    }
-                }
-                if (column == serviceBlockOffset + serviceCSYS[6]) {
-                    if (dataArray [row] [serviceBlockOffset + 1] == -1.0f){
-                        dataArray[row][column] = -1.0f;
-                    } else {
-                        dataArray[row][column] = velocityCalc.getVtasToVeas(dataArray[row][1], dataArray[row][serviceBlockOffset + 2]);    // V (eas), м/с
-                    }
-                }
-                if (column == serviceBlockOffset + serviceCSYS[7]) {
-                    if (dataArray [row] [serviceBlockOffset + 1] == -1.0f){
-                        dataArray[row][column] = -1.0f;
-                    } else {
-                        dataArray[row][column] = velocityCalc.getDynPress(dataArray[row][1], dataArray[row][serviceBlockOffset + 2]);      // q, Па
-                    }
+            // Ma (ограничение другим махом)
+            if (serviceLimitType == 2) {
+                float Ma = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
+                // сравниваются два маха - Ma и другой из любого из блоков скоростей для одноименных высот. Если Ma превышает ограничение, то обращается в -1
+                if (Ma <= blockСompare[row][serviceInternalOffsets[7]]) {
+                    dataVelocity[row][serviceInternalOffsets[7]] = Ma;
+                } else {
+                    dataVelocity[row][serviceInternalOffsets[7]] = -1.0f;
                 }
             }
         }
-        return dataArray;
+
+        // V (tas), м/с
+        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+            // если M=-1, то его производные - V(tas), V(eas), q (и дополнительно V(cas)) обращаются в -1. иначе считаются нормально
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[8]] = -1.0f;
+            } else {
+                dataVelocity[row][serviceInternalOffsets[8]] = velocityCalc.getMachToVtas(dataAtmParam[row][serviceInternalOffsets[5]], dataVelocity[row][serviceInternalOffsets[7]]);
+            }
+        }
+
+        // V (eas), м/с
+        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[9]] = -1.0f;
+            } else {
+                dataVelocity[row][serviceInternalOffsets[9]] = velocityCalc.getVtasToVeas(dataAtmParam[row][serviceInternalOffsets[2]], dataVelocity[row][serviceInternalOffsets[8]]);
+            }
+        }
+
+        // q, Па
+        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[6]] = -1.0f;
+                dataVelocity[row][serviceInternalOffsets[10]] = -1.0f;
+            } else {
+                dataVelocity[row][serviceInternalOffsets[10]] = velocityCalc.getDynPress(dataAtmParam[row][serviceInternalOffsets[2]], dataVelocity[row][serviceInternalOffsets[8]]);
+            }
+        }
+
+        return dataVelocity;
     }
-*/
+
+
+
+}
+
+
+
 
 
 
