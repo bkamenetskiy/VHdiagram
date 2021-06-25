@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 
 class Application {
 
@@ -80,12 +81,20 @@ class Application {
         // порядок: V (CAS); M; V (TAS); V (EAS); q
         int [] outputValue = new int[] {1, 1, 1, 0, 0};
 
-        // Считаем массив данных
-        Engine Engine = new Engine();
-        //float[][] dataArray = Engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
 
-        // читаем второй вариант
-        Engine.getDataArray_V1(inputVelocity, inputMaxM, serviceBlockDimension, serviceInternalOffsets, serviceLimitType);
+        Engine Engine = new Engine();
+        // Считаем массив данных по первому варианту
+        float[][] dataArray = Engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
+
+        // по второму варианту
+        ArrayList<float [][]> dataList = Engine.getDataArray(inputVelocity, inputMaxM, serviceBlockDimension, serviceInternalOffsets, serviceLimitType);
+
+        // экспортируем второй вариант
+        //Engine.dataOutput(dataList, serviceInternalOffset, serviceBlockDimension, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
+
+
+
+
 
         // экспортируем
         //Engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);

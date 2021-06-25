@@ -2,6 +2,7 @@ import solvers.SolverAtmParam;
 import solvers.SolverVelocity;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Engine extends Thread {
 
@@ -33,12 +34,21 @@ public class Engine extends Thread {
         // посчитали скорость Vs
         dataArray = velocityCalculator.getVelocity(dataArray, serviceDimension, serviceCSYS, serviceBlockOffset[3], inputVelocity[3], -1.0f, serviceLimitType[3]);
 
+        // выводим в консоль
+        for (float[]floats : dataArray) {
+            System.out.println();
+            for (float result : floats) {
+                System.out.printf("%.4f", result);
+                System.out.print("     ");
+            }
+        }
+
         // вернули в зад
         return dataArray;
 
     }
 
-    void getDataArray_V1 (float [] inputVelocity, float [] inputMaxM, int [] serviceBlockDimension,
+    ArrayList<float[][]> getDataArray (float [] inputVelocity, float [] inputMaxM, int [] serviceBlockDimension,
                           int [] serviceInternalOffsets, int [] serviceLimitType) {
 
         // массив-заглушка
@@ -50,34 +60,33 @@ public class Engine extends Thread {
         float[][] dataVelocityVd = new float[serviceBlockDimension[0] + 1][serviceBlockDimension[3]];                   // создали массив для скорости Vd
         float[][] dataVelocityVc = new float[serviceBlockDimension[0] + 1][serviceBlockDimension[3]];                   // создали массив для скорости Vc
         float[][] dataVelocityVa = new float[serviceBlockDimension[0] + 1][serviceBlockDimension[3]];                   // создали массив для скорости Va
-
+        float[][] dataVelocityVs = new float[serviceBlockDimension[0] + 1][serviceBlockDimension[3]];                   // создали массив для скорости Vs
 
         // создали ArrayList
         ArrayList <float [][]> dataList = new ArrayList <>();
-
-
-
+        dataList.add(dataAltitude);
+        dataList.add(dataAtmParam);
+        dataList.add(dataVelocityVd);
+        dataList.add(dataVelocityVc);
+        dataList.add(dataVelocityVa);
+        dataList.add(dataVelocityVs);
 
         // записали высоты
-        atmParamCalculator.getAltitude(dataAltitude, serviceBlockDimension[0], serviceInternalOffsets[0]);
+        atmParamCalculator.getAltitude(dataList.get(0), serviceBlockDimension[0], serviceInternalOffsets[0]);
         // записали атмосферу
-        atmParamCalculator.getAtmParam(dataAtmParam, dataAltitude, serviceBlockDimension, serviceInternalOffsets);
+        atmParamCalculator.getAtmParam(dataList.get(1), dataList.get(0), serviceBlockDimension, serviceInternalOffsets); // здесь и далее: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов (параметры атмосферы)
 
         // записали скорость Vd
-        velocityCalculator.getVelocity(dataVelocityVd, dataAtmParam, serviceBlockDimension, serviceInternalOffsets, inputVelocity[0], inputMaxM[0], serviceLimitType[0], blank);
+        velocityCalculator.getVelocity(dataList.get(2), dataList.get(1), serviceBlockDimension, serviceInternalOffsets, inputVelocity[0], inputMaxM[0], serviceLimitType[0], blank);
         // записали скорость Vc
-        velocityCalculator.getVelocity(dataVelocityVc, dataAtmParam, serviceBlockDimension, serviceInternalOffsets, inputVelocity[1], inputMaxM[1], serviceLimitType[1], blank);
+        velocityCalculator.getVelocity(dataList.get(3), dataList.get(1), serviceBlockDimension, serviceInternalOffsets, inputVelocity[1], inputMaxM[1], serviceLimitType[1], blank);
         // записали скорость Va
-        velocityCalculator.getVelocity(dataVelocityVa, dataAtmParam, serviceBlockDimension, serviceInternalOffsets, inputVelocity[2], inputMaxM[1], serviceLimitType[2], dataVelocityVc);
-        // создали массив для скорости Vs
-        float[][] dataVelocityVs = new float[serviceBlockDimension[0] + 1][serviceBlockDimension[3]];
+        velocityCalculator.getVelocity(dataList.get(4), dataList.get(1), serviceBlockDimension, serviceInternalOffsets, inputVelocity[2], inputMaxM[1], serviceLimitType[2], dataVelocityVc);
         // записали скорость Vs
-        velocityCalculator.getVelocity(dataVelocityVs, dataAtmParam, serviceBlockDimension, serviceInternalOffsets, inputVelocity[3], -1.0f, serviceLimitType[3], blank);
-
-
+        velocityCalculator.getVelocity(dataList.get(5), dataList.get(1), serviceBlockDimension, serviceInternalOffsets, inputVelocity[3], -1.0f, serviceLimitType[3], blank);
 
         // выводим в консоль
-        for (float[] floats : dataVelocityVa) {
+        for (float[]floats : dataList.get(2)) {
             System.out.println();
             for (float result : floats) {
                 System.out.printf("%.4f", result);
@@ -85,8 +94,7 @@ public class Engine extends Thread {
             }
         }
 
-
-
+        return dataList;
 
 
     }
