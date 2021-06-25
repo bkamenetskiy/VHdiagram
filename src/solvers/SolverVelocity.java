@@ -8,7 +8,6 @@ public class SolverVelocity {
 
     public float[][] getVelocity(float[][] dataArray, int[] serviceDimension, int[] serviceCSYS, int serviceBlockOffset, float inputVelocity, float maxM, int serviceLimitType) {
 
-        // берем столбец, заполняем столбец
         //1 - ссылка на плотность; 4 - скорость звука; 2 - на давление
 
         // V (cas), м/с
@@ -97,7 +96,7 @@ public class SolverVelocity {
             // Ma (ограничение другим махом)
             if (serviceLimitType == 2) {
                 float Ma = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
-                // сравниваются два маха - Ma и другой из любого из блоков скоростей для одноименных высот. Если Ma превышает ограничение, то обращается в -1
+                // сравниваются два маха - Ma и другой из любого из блоков скоростей (blockСompare) для одноименных высот. Если Ma превышает ограничение, то обращается в -1
                 if (Ma <= blockСompare[row][serviceInternalOffsets[7]]) {
                     dataVelocity[row][serviceInternalOffsets[7]] = Ma;
                 } else {

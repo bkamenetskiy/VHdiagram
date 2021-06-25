@@ -81,23 +81,32 @@ class Application {
         // порядок: V (CAS); M; V (TAS); V (EAS); q
         int [] outputValue = new int[] {1, 1, 1, 0, 0};
 
+        ArrayList <int[]> serviceList = new ArrayList <>();
+        serviceList.add(serviceBlockDimension);
+        serviceList.add(serviceInternalOffsets);
+        serviceList.add(serviceLimitType);
 
-        Engine Engine = new Engine();
+        ArrayList <int[]> outputList = new ArrayList <>();
+        outputList.add(outputBlock);
+        outputList.add(outputValue);
+
+
+        Engine engine = new Engine(serviceList, outputList);
         // Считаем массив данных по первому варианту
-        float[][] dataArray = Engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
+        float[][] dataArray = engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
 
         // по второму варианту
-        ArrayList<float [][]> dataList = Engine.getDataArray(inputVelocity, inputMaxM, serviceBlockDimension, serviceInternalOffsets, serviceLimitType);
+        engine.dataArray(inputVelocity, inputMaxM);
 
         // экспортируем второй вариант
-        //Engine.dataOutput(dataList, serviceInternalOffset, serviceBlockDimension, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
+        //engine.dataOutput(dataList, serviceInternalOffset, serviceBlockDimension, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
 
 
 
 
 
         // экспортируем
-        //Engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
+        //engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
 
         // выводим в консоль
  /*       for (float[] floats : dataArray) {
