@@ -2,14 +2,12 @@ package models;
 
 public final class ModelVelocity {
 
+    // скоростной напор
     public float getDynPress(float dens, float velocityTAS) {
         return (float) ((dens * Math.pow(velocityTAS , 2))/2);
     }
 
-    float getMach (float soundVel, float velocity) {
-        return velocity / soundVel;
-    }
-
+    // пересчет индикаторной земной (Vcas) в число Маха
     public float getVcasToMach(float PressStatic, float casV) {
         float mach0, mach, dynPress, press;
         float pressRel = (float) (PressStatic / 101325.0); // P0
@@ -20,20 +18,15 @@ public final class ModelVelocity {
         return mach;
     }
 
+    // пересчет числа Маха в истинную (Vtas)
     public float getMachToVtas(float soundVelocity, float mach) {
         return mach * soundVelocity;
     }
 
+    // пересчет Vtas в индикаторную (Veas)
     public float getVtasToVeas(float dens, float tasV) {
         float dynPress = (float) ((dens * Math.pow(tasV , 2))/2);
         return (float) Math.sqrt((2.0 * dynPress) / 1.225);
     }
-
-
-
-
-
-
-
 
 }

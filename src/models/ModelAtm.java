@@ -7,6 +7,7 @@ public final class ModelAtm {
 
     private float altitude;
 
+    // функция плотности от высоты
     public float getDens() {
         float densH11, densRel;
 
@@ -18,9 +19,10 @@ public final class ModelAtm {
             densRel = (float) Math.pow(1 - this.altitude / 44330.8 , 4.255879);
         }
         
-        return (densRel * dens0);
+        return (densRel * this.dens0);
     }
 
+    // функция атмосферного давления от высоты
     public float getPressStatic() {
         float pressH11, pressRel;
 
@@ -32,9 +34,10 @@ public final class ModelAtm {
             pressRel = (float) Math.pow(1 - this.altitude / 44330.8 , 5.255879);
         }
 
-        return (pressRel * press0);
+        return (pressRel * this.press0);
     }
 
+    // функция температуры от высоты
     public float getTemp() {
         float temp;
 
@@ -47,6 +50,7 @@ public final class ModelAtm {
         return temp;
     }
 
+    // функция скорости звука от высоты
     public float getSoundVel() {
         float tempAbs;
 

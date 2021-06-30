@@ -5,22 +5,22 @@ import java.util.ArrayList;
 
 public class Engine {
 
-    // сокровищница
-    private ArrayList <int[]> serviceList;                          // хранилище общих настроек
-    private ArrayList <int[]> outputList;                           // хранилище настроек вывода
-    private ArrayList <float [][]> dataList = new ArrayList <>();   // хранилище данных
-
-    // конструктор. он тут не нужен, но я могу, умею, практикую
+    // конструктор. он тут не нужен, но пусть будет
     public Engine (ArrayList <int[]> serviceList, ArrayList <int[]> outputListList)
     {this.serviceList = serviceList;
     this.outputList = outputListList;}
+
+    // сокровищница
+    private ArrayList <int[]> serviceList;                                                                              // хранилище общих настроек
+    private ArrayList <int[]> outputList;                                                                               // хранилище настроек вывода
+    private ArrayList <float [][]> dataList = new ArrayList <>();                                                       // хранилище данных
 
     // решатели
     private SolverVelocity solverVelocity = new SolverVelocity();
     private SolverAtmParam solverAtmParam = new SolverAtmParam();
 
-    // расчет скоростей в едином массиве. изначальная версия
-    float [][] getDataArray (float [] inputVelocity, float [] inputMaxM, int [] serviceCSYS,
+    // расчет скоростей в едином массиве. изначальная концепция
+    public float [][] getDataArray (float [] inputVelocity, float [] inputMaxM, int [] serviceCSYS,
                              int [] serviceBlockOffset, int [] serviceLimitType, int [] serviceDimension) {
 
         // создали массив для хранения данных
@@ -58,17 +58,17 @@ public class Engine {
 
     }
 
-    // расчет скоростей в отдельных массивах
-    public void dataArray (float [] inputVelocity, float [] inputMaxM) {
+    // расчет скоростей в отдельных массивах. вторая концепция
+    public void dataArray (float [] inputVelocity, float [] inputMaxM) throws IOException {
 
         // создание массивов
-        float [][] blank = new float[0][0];                                                                                 // заглушка
-        float[][] dataAltitude = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[1]];                     // создали массив для хранения высот
-        float[][] dataAtmParam = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[2]];                     // создали массив для хранения параметров атмосферы
-        float[][] dataVelocityVd = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[3]];                   // создали массив для скорости Vd
-        float[][] dataVelocityVc = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[3]];                   // создали массив для скорости Vc
-        float[][] dataVelocityVa = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[3]];                   // создали массив для скорости Va
-        float[][] dataVelocityVs = new float[this.serviceList.get(0)[0] + 1][this.serviceList.get(0)[3]];                   // создали массив для скорости Vs
+        float[][] blank = new float[0][0];                                                                              // заглушка
+        float[][] dataAltitude = new float[this.serviceList.get(0)[1]][this.serviceList.get(0)[0] + 1];                 // создали массив для хранения высот
+        float[][] dataAtmParam = new float[this.serviceList.get(0)[2]][this.serviceList.get(0)[0] + 1];                 // создали массив для хранения параметров атмосферы
+        float[][] dataVelocityVd = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vd
+        float[][] dataVelocityVc = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vc
+        float[][] dataVelocityVa = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Va
+        float[][] dataVelocityVs = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vs
 
         // скинули в хранилище
         this.dataList.add(dataAltitude);
@@ -82,7 +82,6 @@ public class Engine {
         solverAtmParam.getAltitude(this.dataList.get(0), this.serviceList.get(0)[0], this.serviceList.get(1)[0]);
         // записали атмосферу
         solverAtmParam.getAtmParam(this.dataList.get(1), this.dataList.get(0), this.serviceList.get(0), this.serviceList.get(1)); // здесь и далее: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов (параметры атмосферы)
-
         // записали скорость Vd
         solverVelocity.getVelocity(this.dataList.get(2), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[0], inputMaxM[0], this.serviceList.get(2)[0], blank);
         // записали скорость Vc
@@ -92,30 +91,36 @@ public class Engine {
         // записали скорость Vs
         solverVelocity.getVelocity(this.dataList.get(5), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[3], -1.0f, this.serviceList.get(2)[3], blank);
 
+
+
         // выводим в консоль
-        for (float[]floats : this.dataList.get(2)) {
+        int aaa = 2; // массив данных
+        for (int i = 0; i < this.serviceList.get(0)[0] + 1; i++) {                                                      // строка с номером i
             System.out.println();
-            for (float result : floats) {
-                System.out.printf("%.4f", result);
+            for (int j = 0; j < this.dataList.get(aaa).length; j++) {                                                   // элемент строки с номером j
+                System.out.printf("%.4f", this.dataList.get(aaa)[j][i]);
                 System.out.print("     ");
+
             }
+
+
         }
 
-        System.out.println(this.dataList.get(0)[100][0]);
-
+        dataOutput();
 
     }
 
-    void dataOutput (float [][] dataArray, int [] serviceCSYS, int [] serviceBlockOffset, int [] outputBlock, int [] outputValue, int outputAltitudeInc, float inputMaxAltitude) throws IOException {
 
-
-        // преобразуем полный массив в урезанный
-        float [][] dataOutputArray = dataArray;
+    // экспорт второй версии
+    void dataOutput () throws IOException {
 
         // Экспортируем
-        ExcelExport export = new ExcelExport();
-        export.setDataOutputArray(dataOutputArray);
-        export.writeData(inputMaxAltitude);
+        Export1 export = new Export1();
+        export.setDataList(dataList);
+        export.setOutputList(outputList);
+        export.setServiceList(serviceList);
+        export.exportData(12200.0f, 10);
+
 
 
 

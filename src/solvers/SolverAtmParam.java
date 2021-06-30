@@ -20,7 +20,7 @@ public class SolverAtmParam {
     public float[][] getAltitude (float[][] dataArray, int numIterate, int index) {
 
         for (int row = 0; row <= numIterate; row++) {
-            dataArray[row][index] = row;
+            dataArray[index][row] = row;
         }
         return dataArray;
     }
@@ -34,7 +34,7 @@ public class SolverAtmParam {
         return dataArray;
     }
 
-    // заполнение блока параметров атмосферы
+    // расчет параметров атмосферы. в общем массиве
     public float[][] getAtmParam(float[][] dataArray, int numIterate, int dataColumn) {                                 // первая версия. подлежит удалению
 
         for (int row = 0; row <= numIterate; row++) {
@@ -60,27 +60,27 @@ public class SolverAtmParam {
         return dataArray;
     }
 
-    // расчет параметров атмосферы
-    public float[][] getAtmParam(float[][] dataAtmParam, float[][] dataAltitude, int [] serviceBlockDimension, int [] serviceInternalOffsets) {
+    // расчет параметров атмосферы. в отдельном блоке
+    public float[][] getAtmParam(float[][] dataArray, float[][] dataAltitude, int[] serviceBlockDimension, int[] serviceInternalOffsets) {
 
         for (int row = 0; row <= serviceBlockDimension[0]; row++) {
 
             // установка высоты для которой рассчитываются параметры
-            atmParamCalc.setAltitude(dataAltitude[row][serviceInternalOffsets[0]]);
+            atmParamCalc.setAltitude(dataAltitude[serviceInternalOffsets[0]][row]);
 
             // расчет плотности
-            dataAtmParam[row][serviceInternalOffsets[2]] = atmParamCalc.getDens();
+            dataArray[serviceInternalOffsets[2]][row] = atmParamCalc.getDens();
 
             // расчет атмосферного давления
-            dataAtmParam[row][serviceInternalOffsets[3]] = atmParamCalc.getPressStatic();
+            dataArray[serviceInternalOffsets[3]][row] = atmParamCalc.getPressStatic();
 
             // расчет атмосферного температуры
-            dataAtmParam[row][serviceInternalOffsets[4]] = atmParamCalc.getTemp();
+            dataArray[serviceInternalOffsets[4]][row] = atmParamCalc.getTemp();
 
             // расчет корости звука
-            dataAtmParam[row][serviceInternalOffsets[5]] = atmParamCalc.getSoundVel();
+            dataArray[serviceInternalOffsets[5]][row] = atmParamCalc.getSoundVel();
         }
-        return dataAtmParam;
+        return dataArray;
     }
 
 }

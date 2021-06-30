@@ -54,7 +54,7 @@ class Application {
         // 8 - относительное положение V (TAS) (индекс);
         // 9 - относительное положение V (EAS) (индекс);
         // 10 - относительное положение q (индекс).
-        int [] serviceInternalOffsets = new int[] {0, 1, 0, 1, 2, 3, 0, 1, 2, 3, 4};
+        int [] serviceInternalOffsets = new int[] {0, 1, 0, 1, 2, 3, 0, 1, 2, 3, 4};                                    // в теории столбцы внутри блока можно менять местами. с высотой точно получается
 
 
         // индексы начал блоков каждой из скоростей в следующем порядке: Vd, Vc, Va, Vs
@@ -74,12 +74,15 @@ class Application {
                 serviceCSYS[0] + serviceCSYS[1] * serviceCSYS[2]};
 
         // ключи экспорта блоков скоростей: 0 - блок не экспортируется; 1 - экспортируется
-        // порядок: высота, атмосфера; Vd; Vc; Va; Vs
+        // порядок: высота (всегда), атмосфера; Vd; Vc; Va; Vs
         int [] outputBlock = new int[] {1, 1, 1, 1, 1, 1};
 
         // экспорт величин из блока скорости (атмосфера экспортируется целиком): 0 - величина не экспортируется; 1 - величина экспортируется
         // порядок: V (CAS); M; V (TAS); V (EAS); q
-        int [] outputValue = new int[] {1, 1, 1, 0, 0};
+        int [] outputAltitude = new int[] {0, 0};
+        int [] outputAtmParam = new int[] {0, 0, 0, 0};
+        int [] outputVelocity = new int[] {1, 1, 1, 0, 0};
+
 
         ArrayList <int[]> serviceList = new ArrayList <>();
         serviceList.add(serviceBlockDimension);
@@ -88,40 +91,24 @@ class Application {
 
         ArrayList <int[]> outputList = new ArrayList <>();
         outputList.add(outputBlock);
-        outputList.add(outputValue);
+        outputList.add(outputAltitude);
+        outputList.add(outputAtmParam);
+        outputList.add(outputVelocity);
 
 
         Engine engine = new Engine(serviceList, outputList);
         // Считаем массив данных по первому варианту
-        float[][] dataArray = engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
+        //float[][] dataArray = engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
 
         // по второму варианту
         engine.dataArray(inputVelocity, inputMaxM);
 
-        // экспортируем второй вариант
-        //engine.dataOutput(dataList, serviceInternalOffset, serviceBlockDimension, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
 
 
 
 
-
-        // экспортируем
-        //engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
-
-        // выводим в консоль
- /*       for (float[] floats : dataArray) {
-            System.out.println();
-            for (float result : floats) {
-                System.out.printf("%.4f", result);
-                System.out.print("     ");
-            }
-        }
-*/
-
-        /*        for (String s : dataTitle) {
-            System.out.print(s + "    ");
-        }*/
-
+        // экспортируем первый вариант
+        //engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputVelocity, outputAltitudeInc, inputMaxAltitude);
 
 
 
