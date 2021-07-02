@@ -62,13 +62,13 @@ public class Engine {
     public void dataArray (float [] inputVelocity, float [] inputMaxM) throws IOException {
 
         // создание массивов
-        float[][] blank = new float[0][0];                                                                              // заглушка
-        float[][] dataAltitude = new float[this.serviceList.get(0)[1]][this.serviceList.get(0)[0] + 1];                 // создали массив для хранения высот
-        float[][] dataAtmParam = new float[this.serviceList.get(0)[2]][this.serviceList.get(0)[0] + 1];                 // создали массив для хранения параметров атмосферы
-        float[][] dataVelocityVd = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vd
-        float[][] dataVelocityVc = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vc
-        float[][] dataVelocityVa = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Va
-        float[][] dataVelocityVs = new float[this.serviceList.get(0)[3]][this.serviceList.get(0)[0] + 1];               // создали массив для скорости Vs
+        float[][] blank = new float[0] [0];                                                                                  // заглушка
+        float[][] dataAltitude = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[1]];                     // создали массив для хранения высот
+        float[][] dataAtmParam = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[2]];                     // создали массив для хранения параметров атмосферы
+        float[][] dataVelocityVd = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[3]];                   // создали массив для скорости Vd
+        float[][] dataVelocityVc = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[3]];                   // создали массив для скорости Vc
+        float[][] dataVelocityVa = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[3]];                   // создали массив для скорости Va
+        float[][] dataVelocityVs = new float[this.serviceList.get(0)[0] + 1] [this.serviceList.get(0)[3]];                   // создали массив для скорости Vs
 
         // скинули в хранилище
         this.dataList.add(dataAltitude);
@@ -79,31 +79,25 @@ public class Engine {
         this.dataList.add(dataVelocityVs);
 
         // записали высоты
-        solverAtmParam.getAltitude(this.dataList.get(0), this.serviceList.get(0)[0], this.serviceList.get(1)[0]);
+        solverAtmParam.getAltitude1(this.dataList.get(0), this.serviceList.get(1)[0]);
         // записали атмосферу
-        solverAtmParam.getAtmParam(this.dataList.get(1), this.dataList.get(0), this.serviceList.get(0), this.serviceList.get(1)); // здесь и далее: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов (параметры атмосферы)
+        solverAtmParam.getAtmParam(this.dataList.get(1), this.dataList.get(0), this.serviceList.get(1));                // здесь и далее: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов (параметры атмосферы)
         // записали скорость Vd
-        solverVelocity.getVelocity(this.dataList.get(2), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[0], inputMaxM[0], this.serviceList.get(2)[0], blank);
+        solverVelocity.getVelocity(this.dataList.get(2), this.dataList.get(1), this.serviceList.get(1), inputVelocity[0], inputMaxM[0], this.serviceList.get(2)[0], blank);
         // записали скорость Vc
-        solverVelocity.getVelocity(this.dataList.get(3), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[1], inputMaxM[1], this.serviceList.get(2)[1], blank);
+        solverVelocity.getVelocity(this.dataList.get(3), this.dataList.get(1), this.serviceList.get(1), inputVelocity[1], inputMaxM[1], this.serviceList.get(2)[1], blank);
         // записали скорость Va
-        solverVelocity.getVelocity(this.dataList.get(4), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[2], inputMaxM[1], this.serviceList.get(2)[2], dataVelocityVc);
+        solverVelocity.getVelocity(this.dataList.get(4), this.dataList.get(1), this.serviceList.get(1), inputVelocity[2], inputMaxM[1], this.serviceList.get(2)[2], dataVelocityVc);
         // записали скорость Vs
-        solverVelocity.getVelocity(this.dataList.get(5), this.dataList.get(1), this.serviceList.get(0), this.serviceList.get(1), inputVelocity[3], -1.0f, this.serviceList.get(2)[3], blank);
-
-
+        solverVelocity.getVelocity(this.dataList.get(5), this.dataList.get(1), this.serviceList.get(1), inputVelocity[3], -1.0f, this.serviceList.get(2)[3], blank);
 
         // выводим в консоль
-        int aaa = 2; // массив данных
-        for (int i = 0; i < this.serviceList.get(0)[0] + 1; i++) {                                                      // строка с номером i
+        for (float[]floats : this.dataList.get(4)) {
             System.out.println();
-            for (int j = 0; j < this.dataList.get(aaa).length; j++) {                                                   // элемент строки с номером j
-                System.out.printf("%.4f", this.dataList.get(aaa)[j][i]);
+            for (float result : floats) {
+                System.out.printf("%.4f", result);
                 System.out.print("     ");
-
             }
-
-
         }
 
         dataOutput();

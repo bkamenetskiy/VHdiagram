@@ -4,11 +4,11 @@ import models.ModelAtm;
 
 public class SolverAtmParam {
 
-    ModelAtm atmParamCalc = new ModelAtm();
+   private ModelAtm atmParamCalc = new ModelAtm();
 
     // заполнение блока высот. высота пишется строго в столбец с индексом 0.
     // dataArray - двумерный массив; numIterate - количество итераций/высота массива
-    public float[][] getAltitude (float[][] dataArray, int numIterate) {                                                // первая версия. подлежит удалению
+   public float[][] getAltitude (float[][] dataArray, int numIterate) {                                                 // первая версия. подлежит удалению
 
         for (int row = 0; row <= numIterate; row++) {
             dataArray[row][0] = row;
@@ -17,18 +17,18 @@ public class SolverAtmParam {
     }
 
     // заполнение блока высот. высота пишется в столбец с индексом, указанным пользователем в переменной index
-    public float[][] getAltitude (float[][] dataArray, int numIterate, int index) {
+   public float[][] getAltitude1 (float[][] dataArray, int index) {
 
-        for (int row = 0; row <= numIterate; row++) {
-            dataArray[index][row] = row;
+        for (int row = 0; row <= dataArray.length - 1; row++) {
+            dataArray[row][index] = row;
         }
         return dataArray;
-    }
+   }
 
     // заполнение блока высот в одномерный массив
-    public float[] getAltitude (float[] dataArray, int numIterate) {
+    public float[] getAltitude (float[] dataArray) {
 
-        for (int row = 0; row <= numIterate; row++) {
+        for (int row = 0; row <= dataArray.length - 1; row++) {
             dataArray[row] = row;
         }
         return dataArray;
@@ -61,24 +61,24 @@ public class SolverAtmParam {
     }
 
     // расчет параметров атмосферы. в отдельном блоке
-    public float[][] getAtmParam(float[][] dataArray, float[][] dataAltitude, int[] serviceBlockDimension, int[] serviceInternalOffsets) {
+    public float[][] getAtmParam(float[][] dataArray, float[][] dataAltitude, int[] serviceInternalOffsets) {
 
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+        for (int row = 0; row <= dataArray.length - 1; row++) {
 
             // установка высоты для которой рассчитываются параметры
-            atmParamCalc.setAltitude(dataAltitude[serviceInternalOffsets[0]][row]);
+            atmParamCalc.setAltitude(dataAltitude[row][serviceInternalOffsets[0]]);
 
             // расчет плотности
-            dataArray[serviceInternalOffsets[2]][row] = atmParamCalc.getDens();
+            dataArray[row][serviceInternalOffsets[2]] = atmParamCalc.getDens();
 
             // расчет атмосферного давления
-            dataArray[serviceInternalOffsets[3]][row] = atmParamCalc.getPressStatic();
+            dataArray[row][serviceInternalOffsets[3]] = atmParamCalc.getPressStatic();
 
             // расчет атмосферного температуры
-            dataArray[serviceInternalOffsets[4]][row] = atmParamCalc.getTemp();
+            dataArray[row][serviceInternalOffsets[4]] = atmParamCalc.getTemp();
 
             // расчет корости звука
-            dataArray[serviceInternalOffsets[5]][row] = atmParamCalc.getSoundVel();
+            dataArray[row][serviceInternalOffsets[5]] = atmParamCalc.getSoundVel();
         }
         return dataArray;
     }

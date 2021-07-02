@@ -4,7 +4,7 @@ import models.ModelVelocity;
 
 public class SolverVelocity {
 
-    ModelVelocity velocityCalc = new ModelVelocity();
+    private ModelVelocity velocityCalc = new ModelVelocity();
 
     public float[][] getVelocity(float[][] dataArray, int[] serviceDimension, int[] serviceCSYS, int serviceBlockOffset, float inputVelocity, float maxM, int serviceLimitType) {
 
@@ -72,65 +72,65 @@ public class SolverVelocity {
     }
 
 
-    public float[][] getVelocity(float[][] dataVelocity, float[][] dataAtmParam, int[] serviceBlockDimension, int[] serviceInternalOffsets, float inputVelocity, float maxM, int serviceLimitType, float [][] blockСompare) {
+    public float[][] getVelocity(float[][] dataVelocity, float[][] dataAtmParam, int[] serviceInternalOffsets, float inputVelocity, float maxM, int serviceLimitType, float [][] blockСompare) {
 
         // V (cas), м/с
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
-            dataVelocity[serviceInternalOffsets[6]][row] = inputVelocity;
+        for (int row = 0; row <= dataVelocity.length - 1; row++) {
+            dataVelocity[row][serviceInternalOffsets[6]] = inputVelocity;
         }
 
         // M
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+        for (int row = 0; row <= dataVelocity.length - 1; row++) {
 
             // Ms (без верхнего ограничения по маху)
             if (serviceLimitType == 0) {
-                dataVelocity[serviceInternalOffsets[7]][row] = velocityCalc.getVcasToMach(dataAtmParam[serviceInternalOffsets[3]][row], inputVelocity);
+                dataVelocity[row][serviceInternalOffsets[7]] = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
             }
 
             // Md, Mc (директивное ограничение максимальным махом)
             if (serviceLimitType == 1) {
-                float Md = velocityCalc.getVcasToMach(dataAtmParam[serviceInternalOffsets[3]][row], inputVelocity);
-                dataVelocity[serviceInternalOffsets[7]][row] = Math.min(Md, maxM);
+                float Md = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
+                dataVelocity[row][serviceInternalOffsets[7]] = Math.min(Md, maxM);
             }
 
             // Ma (ограничение другим махом)
             if (serviceLimitType == 2) {
-                float Ma = velocityCalc.getVcasToMach(dataAtmParam[serviceInternalOffsets[3]][row], inputVelocity);
+                float Ma = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
                 // сравниваются два маха - Ma и другой из любого из блоков скоростей (blockСompare) для одноименных высот. Если Ma превышает ограничение, то обращается в -1
-                if (Ma <= blockСompare[serviceInternalOffsets[7]][row]) {
-                    dataVelocity[serviceInternalOffsets[7]][row] = Ma;
+                if (Ma <= blockСompare[row][serviceInternalOffsets[7]]) {
+                    dataVelocity[row][serviceInternalOffsets[7]] = Ma;
                 } else {
-                    dataVelocity[serviceInternalOffsets[7]][row] = -1.0f;
+                    dataVelocity[row][serviceInternalOffsets[7]] = -1.0f;
                 }
             }
         }
 
         // V (tas), м/с
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
+        for (int row = 0; row <= dataVelocity.length - 1; row++) {
             // если M=-1, то его производные - V(tas), V(eas), q (и дополнительно V(cas)) обращаются в -1. иначе считаются нормально
-            if (dataVelocity[serviceInternalOffsets[7]][row] == -1.0f){
-                dataVelocity[serviceInternalOffsets[8]][row] = -1.0f;
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[8]] = -1.0f;
             } else {
-                dataVelocity[serviceInternalOffsets[8]][row] = velocityCalc.getMachToVtas(dataAtmParam[serviceInternalOffsets[5]][row], dataVelocity[serviceInternalOffsets[7]][row]);
+                dataVelocity[row][serviceInternalOffsets[8]] = velocityCalc.getMachToVtas(dataAtmParam[row][serviceInternalOffsets[5]], dataVelocity[row][serviceInternalOffsets[7]]);
             }
         }
 
         // V (eas), м/с
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
-            if (dataVelocity[serviceInternalOffsets[7]][row] == -1.0f){
-                dataVelocity[serviceInternalOffsets[9]][row] = -1.0f;
+        for (int row = 0; row <= dataVelocity.length - 1; row++) {
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[9]] = -1.0f;
             } else {
-                dataVelocity[serviceInternalOffsets[9]][row] = velocityCalc.getVtasToVeas(dataAtmParam[serviceInternalOffsets[2]][row], dataVelocity[serviceInternalOffsets[8]][row]);
+                dataVelocity[row][serviceInternalOffsets[9]] = velocityCalc.getVtasToVeas(dataAtmParam[row][serviceInternalOffsets[2]], dataVelocity[row][serviceInternalOffsets[8]]);
             }
         }
 
         // q, Па
-        for (int row = 0; row <= serviceBlockDimension[0]; row++) {
-            if (dataVelocity[serviceInternalOffsets[7]][row] == -1.0f){
-                dataVelocity[serviceInternalOffsets[6]][row] = -1.0f;
-                dataVelocity[serviceInternalOffsets[10]][row] = -1.0f;
+        for (int row = 0; row <= dataVelocity.length - 1; row++) {
+            if (dataVelocity[row][serviceInternalOffsets[7]] == -1.0f){
+                dataVelocity[row][serviceInternalOffsets[6]] = -1.0f;
+                dataVelocity[row][serviceInternalOffsets[10]] = -1.0f;
             } else {
-                dataVelocity[serviceInternalOffsets[10]][row] = velocityCalc.getDynPress(dataAtmParam[serviceInternalOffsets[2]][row], dataVelocity[serviceInternalOffsets[8]][row]);
+                dataVelocity[row][serviceInternalOffsets[10]] = velocityCalc.getDynPress(dataAtmParam[row][serviceInternalOffsets[2]], dataVelocity[row][serviceInternalOffsets[8]]);
             }
         }
 
