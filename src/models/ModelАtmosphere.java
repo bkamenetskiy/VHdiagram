@@ -1,13 +1,13 @@
 package models;
 
-public final class ModelAtm {
+public final class ModelАtmosphere {
 
     final private float dens0 = 1.225f;
     final private float press0 = 101325.0f;
 
     private float altitude;
 
-    // функция плотности от высоты
+    // функция плотности от высоты (кг/м3)
     public float getDens() {
         float densH11, densRel;
 
@@ -22,7 +22,7 @@ public final class ModelAtm {
         return (densRel * this.dens0);
     }
 
-    // функция атмосферного давления от высоты
+    // функция атмосферного давления от высоты (Па)
     public float getPressStatic() {
         float pressH11, pressRel;
 
@@ -37,7 +37,7 @@ public final class ModelAtm {
         return (pressRel * this.press0);
     }
 
-    // функция температуры от высоты
+    // функция температуры от высоты (K)
     public float getTemp() {
         float temp;
 
@@ -50,7 +50,7 @@ public final class ModelAtm {
         return temp;
     }
 
-    // функция скорости звука от высоты
+    // функция скорости звука от высоты (м/с)
     public float getSoundVel() {
         float tempAbs;
 

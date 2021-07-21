@@ -9,16 +9,16 @@ public final class ModelUnits {
 
     // конвертация метров в километры
     public float getLengthKilometer (float meter) {
-        return meter / 1000.000f;
+        return meter / 1000.0f;
     }
 
     // конвертация м/с в узлы
-    public float getLengthVelocityKt (float meterPerSecond) {
+    public float getVelocityKt(float meterPerSecond) {
         return meterPerSecond / 0.514444444f;
     }
 
     // конвертация м/с в км/ч
-    public float getLengthVelocity (float meterPerSecond) {
+    public float getVelocityKm(float meterPerSecond) {
         return meterPerSecond * 60.0f * 60.0f / 1000.0f;
     }
 

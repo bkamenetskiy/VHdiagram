@@ -1,10 +1,10 @@
 package solvers;
 
-import models.ModelAtm;
+import models.ModelАtmosphere;
 
 public class SolverAtmParam {
 
-   private ModelAtm atmParamCalc = new ModelAtm();
+   private ModelАtmosphere atmParamCalc = new ModelАtmosphere();
 
     // заполнение блока высот. высота пишется строго в столбец с индексом 0.
     // dataArray - двумерный массив; numIterate - количество итераций/высота массива
