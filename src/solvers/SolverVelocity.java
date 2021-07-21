@@ -72,7 +72,7 @@ public class SolverVelocity {
     }
 
 
-    public float[][] getVelocity(float[][] dataVelocity, float[][] dataAtmParam, int[] serviceInternalOffsets, float inputVelocity, float maxM, int serviceLimitType, float [][] blockСompare) {
+    public float[][] getVelocity(float[][] dataVelocity, float[][] dataAtmParam, int[] serviceInternalOffsets, float inputVelocity, float maxM, int serviceLimitType, float [][] blockCompare) {
 
         // V (cas), м/с
         for (int row = 0; row <= dataVelocity.length - 1; row++) {
@@ -96,8 +96,8 @@ public class SolverVelocity {
             // Ma (ограничение другим махом)
             if (serviceLimitType == 2) {
                 float Ma = velocityCalc.getVcasToMach(dataAtmParam[row][serviceInternalOffsets[3]], inputVelocity);
-                // сравниваются два маха - Ma и другой из любого из блоков скоростей (blockСompare) для одноименных высот. Если Ma превышает ограничение, то обращается в -1
-                if (Ma <= blockСompare[row][serviceInternalOffsets[7]]) {
+                // сравниваются два маха - Ma и другой из любого из блоков скоростей (blockCompare) для одноименных высот. Если Ma превышает ограничение, то обращается в -1
+                if (Ma <= blockCompare[row][serviceInternalOffsets[7]]) {
                     dataVelocity[row][serviceInternalOffsets[7]] = Ma;
                 } else {
                     dataVelocity[row][serviceInternalOffsets[7]] = -1.0f;

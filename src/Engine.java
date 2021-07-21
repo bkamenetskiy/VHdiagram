@@ -92,7 +92,7 @@ public class Engine {
         solverVelocity.getVelocity(this.dataList.get(5), this.dataList.get(1), this.serviceList.get(1), inputVelocity[3], -1.0f, this.serviceList.get(2)[3], blank);
 
         // выводим в консоль
-        for (float[]floats : this.dataList.get(4)) {
+        for (float[]floats : this.dataList.get(3)) {
             System.out.println();
             for (float result : floats) {
                 System.out.printf("%.4f", result);

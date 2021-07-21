@@ -14,9 +14,8 @@ public class Export1 {
     private ArrayList <int[]> serviceList;                                                                              // хранилище общих настроек
     private ArrayList <int[]> outputList;                                                                               // хранилище настроек вывода
     private ArrayList <float [][]> dataList;                                                                            // хранилище данных
-    //private int outputAltitudeInc = 10;
 
-    // создание конвертера величин
+    // создание конвертера единиц измерения
     private ModelUnits unitConvert = new ModelUnits();
     // создание книги
     private XSSFWorkbook dataFile = new XSSFWorkbook();
@@ -24,9 +23,15 @@ public class Export1 {
     private XSSFSheet sheet = this.dataFile.createSheet("Result");
 
 
-    private int unitAltitude = 1; // 1 - километры; любой другой ключ - метры
+    private int unitAltitude = 0; // 1 - километры; любой другой ключ - метры
     private int unitVelocity = 1; // 0 - м/с; 1 - км/ч; 2 - knot
-    private int unitTemp = 0;     // 0 - K; 1 - C; 2 - F
+
+    private String []  titleAtmParam = new String[] {"Плотность", "Давление", "Скорость звука", "Температура"};
+    private String []  titleVelocity = new String[] {"Vcas", "M", "Vtas", "Veas", "q"};
+
+    private String []  titleUnitVelocity = new String[] {"м/с", "км/ч", "knot"};
+    private String []  titleUnitLength = new String[] {"м", "км", "фут"};
+
 
 
 
@@ -60,12 +65,12 @@ public class Export1 {
                 if (column == this.serviceList.get(1)[0]) {
 
                     switch (this.unitAltitude) {
-                        case 0:
-                            rowData.createCell(column + deltaWidth).setCellValue(conversionAltitude);
-                            break;
                         case 1:
                             conversionAltitude = unitConvert.getLengthKilometer(conversionAltitude);                    // конвертация из метров в километры
                             rowData.createCell(column + deltaWidth).setCellValue(conversionAltitude);        // создание ячейки в строке с номером rowData и номером столбца column, запись в нее элемента Altitude
+                            break;
+                        default:
+                            rowData.createCell(column + deltaWidth).setCellValue(conversionAltitude);
                             break;
                     }
                 }
@@ -92,63 +97,63 @@ public class Export1 {
                 for (int column = 0; column <= this.dataList.get(i)[0].length - 1; column++) {
 
                     // вспомогательная переменная. считает смещение текущего блока скорости i относительно уже экспортированных
-                    int offset = column + deltaWidth + this.dataList.get(0)[0].length + this.dataList.get(1)[0].length + this.dataList.get(i)[0].length * (i - 2);
+                    int offset = deltaWidth + this.dataList.get(0)[0].length + this.dataList.get(1)[0].length + this.dataList.get(i)[0].length * (i - 2);
                     // вспомогательная переменная. хранит текущеее значение взятое из блока скорости
                     conversionVelocity = this.dataList.get(i)[initAlt][column];
 
                     // конвертация Vcas. отсечение отрицательных значений
-                    if ((column == 0) & (conversionVelocity > 0.0f)) {
+                    if ((column == this.serviceList.get(1)[6]) & (conversionVelocity > 0.0f)) {
                         switch (this.unitVelocity) {
                             case 0:
-                                rowData.createCell(offset).setCellValue(conversionVelocity);
+                                rowData.createCell(offset + this.serviceList.get(1)[6]).setCellValue(conversionVelocity);
                                 break;
                             case 1:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[6]).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
                                 break;
                             case 2:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[6]).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
                                 break;
                         }
                     }
 
                     // проверка маха на -1
-                    if ((column == 1) & (conversionVelocity > 0.0f)) {
-                            rowData.createCell(offset).setCellValue(conversionVelocity);
+                    if ((column == this.serviceList.get(1)[7]) & (conversionVelocity > 0.0f)) {
+                            rowData.createCell(offset + this.serviceList.get(1)[7]).setCellValue(conversionVelocity);
                     }
 
                     // конвертация Vtas. отсечение отрицательных значений
-                    if ((column == 2) & (conversionVelocity > 0.0f)) {
+                    if ((column == this.serviceList.get(1)[8]) & (conversionVelocity > 0.0f)) {
                         switch (this.unitVelocity) {
                             case 0:
-                                rowData.createCell(offset).setCellValue(conversionVelocity);
+                                rowData.createCell(offset + this.serviceList.get(1)[8]).setCellValue(conversionVelocity);
                                 break;
                             case 1:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[8]).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
                                 break;
                             case 2:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[8]).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
                                 break;
                         }
                     }
 
                     // конвертация Veas. отсечение отрицательных значений
-                    if ((column == 3) & (conversionVelocity > 0.0f)) {
+                    if ((column == this.serviceList.get(1)[9]) & (conversionVelocity > 0.0f)) {
                         switch (this.unitVelocity) {
                             case 0:
-                                rowData.createCell(offset).setCellValue(conversionVelocity);
+                                rowData.createCell(offset + this.serviceList.get(1)[9]).setCellValue(conversionVelocity);
                                 break;
                             case 1:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[9]).setCellValue(unitConvert.getVelocityKm(conversionVelocity));
                                 break;
                             case 2:
-                                rowData.createCell(offset).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
+                                rowData.createCell(offset + this.serviceList.get(1)[9]).setCellValue(unitConvert.getVelocityKt(conversionVelocity));
                                 break;
                         }
                     }
 
                     // проверка скоростного напора на -1
-                    if ((column == 4) & (conversionVelocity > 0.0f)) {
-                            rowData.createCell(offset).setCellValue(conversionVelocity);
+                    if ((column == this.serviceList.get(1)[10]) & (conversionVelocity > 0.0f)) {
+                            rowData.createCell(offset + this.serviceList.get(1)[10]).setCellValue(conversionVelocity);
                     }
                 }
             }
