@@ -5,9 +5,6 @@ import java.util.ArrayList;
 class Application {
 
 
-
-
-
     public static void main(String[] args) throws IOException, ParseException {
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
@@ -24,103 +21,53 @@ class Application {
         // приращение по высоте при выводе диаграммы
         int outputAltitudeInc = 10;
 
-        // система координат в основном массиве данных:
-        // 0 - глобальное смещение всех блоков скоростей (индекс); 1 - ширина блока скорости (счетное);
-        // 2 - количество блоков скоростей (счетное); 3 - относительное положение (внутреннее смещение) в блоке V (CAS) (индекс);
-        // 4 - относительное положение маха (индекс); 5 - относительное положение V (TAS) (индекс);
-        // 6 - относительное положение V (EAS) (индекс); 7 - относительное положение q (индекс);
-        int [] serviceCSYS = new int[] {5, 5, inputVelocity.length, 0, 1, 2, 3, 4};
-
         // размерности блоков:
         // 0 - высота блока/количество итераций (счетное, общая для всех);
         // 1 - ширина блока высоты (счетное);
         // 2 - ширина блока параметров атмосферы (счетное);
         // 3 - ширина блока скорости (счетное);
         // 4 - количество блоков скоростей (счетное).
-        int [] serviceBlockDimension = new int[] {(int) Math.ceil (inputMaxAltitude / 1.0f), 2, 4, 5,inputVelocity.length};
-
-        // относительные положения параметров (внутренние смещения) в соответствующих массивах (блоках):
-        // Блок скоростей:
-        // 0 - положение высоты (в метрах) в блоке высот (индекс);
-        // 1 - положение высоты (в футах) в блоке высот (индекс) - заразервирована, не используется.
-        // Блок параметров атмосферы:
-        // 2 - положение плотноти (индекс);
-        // 3 - положение атмосферного давления (индекс);
-        // 4 - положение температуры (индекс);
-        // 5 - положение скорости звука (индекс).
-        // Блок скоростей:
-        // 6 - относительное положение в блоке V (CAS) (индекс);
-        // 7 - относительное положение числа Маха (индекс);
-        // 8 - относительное положение V (TAS) (индекс);
-        // 9 - относительное положение V (EAS) (индекс);
-        // 10 - относительное положение q (индекс).
-        int [] serviceInternalOffsets = new int[] {0, 1, 0, 1, 2, 3, 0, 1, 2, 3, 4};
-
-
-        // индексы начал блоков каждой из скоростей в следующем порядке: Vd, Vc, Va, Vs
-        // указывает на начальный индекс соответствующего блока
-        int [] serviceBlockOffset = new int[] {
-                serviceCSYS[0] + serviceCSYS[1] * 0,
-                serviceCSYS[0] + serviceCSYS[1] * 1,
-                serviceCSYS[0] + serviceCSYS[1] * 2,
-                serviceCSYS[0] + serviceCSYS[1] * 3};
+        int [] settingDimension = new int[] {(int) Math.ceil (inputMaxAltitude / 1.0f), 2, 4, 5,inputVelocity.length};
 
         // ограничения для скоростей в следующем порядке: Vd, Vc, Va, Vs
         // типы ограничений: 1 - ограничение сверху по значению маха; 2 - ограничение сверху махом другой скорости; 0 - ограничения отсутствуют
-        int [] serviceLimitType = new int[] {1, 1, 2, 0};
+        int [] settingLimitType = new int[] {1, 1, 2, 0};
 
-        // размер массива с данными: 0 - высота массива; 1 - ширина массива. Y и X соответственно
-        int [] serviceDimension = new int[] {(int) Math.ceil (inputMaxAltitude / 1.0f),
-                serviceCSYS[0] + serviceCSYS[1] * serviceCSYS[2]};
+        ArrayList <int[]> listSettings = new ArrayList <>();
+        listSettings.add(settingDimension);
+        listSettings.add(settingLimitType);
 
-        // ключи экспорта блоков скоростей: 0 - блок не экспортируется; 1 - экспортируется
-        // порядок: высота, атмосфера; Vd; Vc; Va; Vs
-        int [] outputBlock = new int[] {1, 1, 1, 1, 1, 1};
+        // относительные положения параметров (внутренние смещения) в соответствующих массивах (блоках):
+        // 0. Блок скоростей:
+        // 0 - положение высоты (в метрах) в блоке высот (индекс);
+        // 1 - положение высоты (в футах) в блоке высот (индекс) - заразервирована, не используется.
+        // 1. Блок параметров атмосферы:
+        // 0 - положение плотноти (индекс);
+        // 1 - положение атмосферного давления (индекс);
+        // 2 - положение температуры (индекс);
+        // 3 - положение скорости звука (индекс).
+        // 2. Блок скоростей:
+        // 0 - относительное положение в блоке V (CAS) (индекс);
+        // 1 - относительное положение числа Маха (индекс);
+        // 2 - относительное положение V (TAS) (индекс);
+        // 3 - относительное положение V (EAS) (индекс);
+        // 4 - относительное положение q (индекс).
+        int [] internalOffsetsAltitude = new int[] {0, 1};
+        int [] internalOffsetsAtmParam = new int[] {0, 1, 2, 3};
+        int [] internalOffsetsVelocity = new int[] {0, 1, 2, 3, 4};
 
-        // экспорт величин из блока скорости (атмосфера экспортируется целиком): 0 - величина не экспортируется; 1 - величина экспортируется
-        // порядок: V (CAS); M; V (TAS); V (EAS); q
-        int [] outputValue = new int[] {1, 1, 1, 0, 0};
-
-        ArrayList <int[]> serviceList = new ArrayList <>();
-        serviceList.add(serviceBlockDimension);
-        serviceList.add(serviceInternalOffsets);
-        serviceList.add(serviceLimitType);
-
-        ArrayList <int[]> outputList = new ArrayList <>();
-        outputList.add(outputBlock);
-        outputList.add(outputValue);
+        ArrayList <int []> listInternalOffsets = new ArrayList <>();                                             // хранилище внутренних (относительных) смещений
+        listInternalOffsets.add(internalOffsetsAltitude);
+        listInternalOffsets.add(internalOffsetsAtmParam);
+        listInternalOffsets.add(internalOffsetsVelocity);
 
 
-        Engine engine = new Engine(serviceList, outputList);
-        // Считаем массив данных по первому варианту
-        //float[][] dataArray = engine.getDataArray(inputVelocity, inputMaxM, serviceCSYS, serviceBlockOffset, serviceLimitType, serviceDimension);
-
-        // по второму варианту
-        engine.dataArray(inputVelocity, inputMaxM);
+        Engine engine = new Engine(listSettings, listInternalOffsets);
 
         // экспортируем второй вариант
-        //engine.dataOutput(dataList, serviceInternalOffset, serviceBlockDimension, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
+        engine.dataArray(inputVelocity, inputMaxM);
 
 
-
-
-
-        // экспортируем
-        //engine.dataOutput(dataArray, serviceCSYS, serviceBlockOffset, outputBlock, outputValue, outputAltitudeInc, inputMaxAltitude);
-
-        // выводим в консоль
- /*       for (float[] floats : dataArray) {
-            System.out.println();
-            for (float result : floats) {
-                System.out.printf("%.4f", result);
-                System.out.print("     ");
-            }
-        }
-*/
-
-        /*        for (String s : dataTitle) {
-            System.out.print(s + "    ");
-        }*/
 
 
 
@@ -139,19 +86,6 @@ class Application {
 
 
 
-
-
-
-/*
-        for (int i = 0; i < dataArray.length; i++) {
-            System.out.println();
-            for (int j = 0; j < dataArray[i].length; j++) {
-                float result = dataArray[i][j];
-                System.out.printf("%.4f",result);
-                System.out.print("     ");
-            }
-        }
-*/
 
 
 
