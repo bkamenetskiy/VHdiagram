@@ -41,9 +41,9 @@ public class Engine {
         this.listData.add(dataVelocityVs);
 
         // записали высоты
-        solverAtmParam.getAltitude1(this.listData.get(0), this.listInternalOffsets.get(0)[0]);
+        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0]);
         // записали атмосферу
-        solverAtmParam.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
+        solverAtmParam.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
         // записали скорость Vd
         solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, inputVelocity[0], inputMaxM[0], this.listSettings.get(1)[0], blank);
         // записали скорость Vc
@@ -57,7 +57,7 @@ public class Engine {
         for (float[]floats : this.listData.get(3)) {
             System.out.println();
             for (float result : floats) {
-                System.out.printf("%.4f", result);
+                System.out.printf("%.6f", result);
                 System.out.print("     ");
             }
         }
