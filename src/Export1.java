@@ -26,8 +26,8 @@ public class Export1 {
     private XSSFSheet sheet = this.dataFile.createSheet("Result");
 
 
-    private int unitAltitude = 1; // 1 - километры; любой другой ключ - метры
-    private int unitVelocity = 0; // 0 - м/с; 1 - км/ч; 2 - knot
+    private int unitAltitude = 0; // 1 - километры; любой другой ключ - метры
+    private int unitVelocity = 1; // 0 - м/с; 1 - км/ч; 2 - knot
 
 
     public void exportData(int outputAltitudeInc) throws IOException {
@@ -57,10 +57,10 @@ public class Export1 {
                     switch (this.unitAltitude) {
                         case 1:
                             conversionAltitude = unitConvert.getLengthKilometer(conversionAltitude);                    // конвертация из метров в километры
-                            rowData.createCell(column).setCellValue(conversionAltitude);        // создание ячейки в строке с номером rowData и номером столбца column, запись в нее элемента Altitude
+                            rowData.createCell(column).setCellValue(conversionAltitude);                                // создание ячейки в строке с номером rowData и номером столбца column, запись в нее элемента Altitude
                             break;
                         default:
-                            rowData.createCell(column).setCellValue(conversionAltitude);        // по умолчанию заполняется метрами
+                            rowData.createCell(column).setCellValue(conversionAltitude);                                // по умолчанию заполняется метрами
                             break;
                     }
                 }
@@ -197,6 +197,7 @@ public class Export1 {
         rowHeading.createCell(0).setCellValue("Высота");
         sheet.addMergedRegion(new CellRangeAddress(0,0,0,1));
 
+        // шапка блока высот
         for (int column = 0; column <= this.listData.get(0)[0].length - 1; column++) {
 
             // высота в метрах
@@ -224,9 +225,6 @@ public class Export1 {
 
             }
         }
-
-
-
 
         // шапка блока параметров атмосферы
         for (int column = 0; column <= this.listData.get(1)[0].length - 1; column++) {
@@ -284,7 +282,115 @@ public class Export1 {
             }
         }
 
-            // шапка блока скоростей
+        // шапка блока скоростей
+        for (int i = 2; i < this.listData.size(); i++) {
+
+            // вспомогательная переменная. считает смещение текущего блока скорости i относительно уже экспортированных
+            int offset = this.listData.get(0)[0].length + this.listData.get(1)[0].length + this.listData.get(i)[0].length * (i - 2);
+
+            for (int column = 0; column <= this.listData.get(i)[0].length - 1; column++) {
+
+                // Vcas
+                if (column == this.listInternalOffsets.get(2)[0]) {
+
+                    // название
+                    rowHeading = this.sheet.getRow(0);
+                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[0]);
+
+                    // единицы измерения
+                    switch (this.unitVelocity) {
+                        case 0: // м/с
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
+                            break;
+                        case 1: // км/ч
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
+                            break;
+                        case 2: // узлы
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
+                            break;
+                    }
+                }
+
+                // M
+                if (column == this.listInternalOffsets.get(2)[1]) {
+
+                    // название
+                    rowHeading = this.sheet.getRow(0);
+                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[1]);
+
+                    // единицы измерения
+                    rowHeading = this.sheet.getRow(1);
+                    rowHeading.createCell(offset + column).setCellValue("-");
+                }
+
+                // Vtas
+                if (column == this.listInternalOffsets.get(2)[2]) {
+
+                    // название
+                    rowHeading = this.sheet.getRow(0);
+                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[2]);
+
+                    // единицы измерения
+                    switch (this.unitVelocity) {
+                        case 0: // м/с
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
+                            break;
+                        case 1: // км/ч
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
+                            break;
+                        case 2: // узлы
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
+                            break;
+                    }
+                }
+
+                // Veas
+                if (column == this.listInternalOffsets.get(2)[3]) {
+
+                    // название
+                    rowHeading = this.sheet.getRow(0);
+                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[3]);
+
+                    // единицы измерения
+                    switch (this.unitVelocity) {
+                        case 0: // м/с
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
+                            break;
+                        case 1: // км/ч
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
+                            break;
+                        case 2: // узлы
+                            rowHeading = this.sheet.getRow(1);
+                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
+                            break;
+                    }
+                }
+
+                // q
+                if (column == this.listInternalOffsets.get(2)[4]) {
+
+                    // название
+                    rowHeading = this.sheet.getRow(0);
+                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[4]);
+
+                    // единицы измерения
+                    rowHeading = this.sheet.getRow(1);
+                    rowHeading.createCell(offset + column).setCellValue(headingUnitPressure[0]);
+                }
+            }
+
+
+
+
+        }
 
 
 
@@ -295,7 +401,7 @@ public class Export1 {
 
 
 
-       // }
+
 
 
 

@@ -52,9 +52,9 @@ class Application {
         // 2 - относительное положение V (TAS) (индекс);
         // 3 - относительное положение V (EAS) (индекс);
         // 4 - относительное положение q (индекс).
-        int [] internalOffsetsAltitude = new int[] {1, 0};
+        int [] internalOffsetsAltitude = new int[] {0, 1};
         int [] internalOffsetsAtmParam = new int[] {3, 1, 2, 0};
-        int [] internalOffsetsVelocity = new int[] {0, 1, 2, 3, 4};
+        int [] internalOffsetsVelocity = new int[] {4, 1, 2, 3, 0};
 
         ArrayList <int []> listInternalOffsets = new ArrayList <>();                                                    // хранилище внутренних (относительных) смещений
         listInternalOffsets.add(internalOffsetsAltitude);

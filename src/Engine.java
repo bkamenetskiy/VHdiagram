@@ -20,7 +20,7 @@ public class Engine {
     private SolverVelocity solverVelocity = new SolverVelocity();
     private SolverAtmParam solverAtmParam = new SolverAtmParam();
 
-    // расчет скоростей в отдельных массивах. вторая концепция
+    // расчет скоростей в отдельных массивах
     public void dataArray (float[] inputVelocity, float[] inputMaxM) throws IOException {
 
         // создание массивов
