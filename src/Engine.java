@@ -1,24 +1,35 @@
+import ExportExcel.ExportChart;
+import ExportExcel.ExportData;
+import ExportExcel.ExportHeading;
+import models.ModelUnits;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import solvers.SolverAtmParam;
 import solvers.SolverVelocity;
+
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class Engine {
 
-    // конструктор. он тут не нужен, но пусть будет
+    // конструктор
     public Engine (ArrayList <int[]> listSettings, ArrayList <int[]> listInternalOffsets)
 
-    {this.listSettings = listSettings;
-    this.listInternalOffsets = listInternalOffsets;}
+    {
+        this.listSettings = listSettings;
+        this.listInternalOffsets = listInternalOffsets;
+    }
 
     // сокровищница
     private ArrayList <int[]> listSettings;                                                                             // хранилище общих настроек
-    private ArrayList <int[]> listInternalOffsets;                                                              // ранилище внутренних смещений
-    private ArrayList <float[][]> listData = new ArrayList <>();                                                       // хранилище данных
+    private ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
+    private ArrayList <float[][]> listData = new ArrayList <>();                                                        // хранилище данных
 
     // решатели
     private SolverVelocity solverVelocity = new SolverVelocity();
     private SolverAtmParam solverAtmParam = new SolverAtmParam();
+    private ModelUnits unitConverter = new ModelUnits();
 
     // расчет скоростей в отдельных массивах
     public void dataArray (float[] inputVelocity, float[] inputMaxM) throws IOException {
@@ -61,30 +72,72 @@ public class Engine {
                 System.out.print("     ");
             }
         }
-
-        dataOutput();
-
     }
 
 
-    // экспорт второй версии
+    // экспорт в excel
     void dataOutput () throws IOException {
 
-        // Экспортируем
-        Export1 export = new Export1();
-        export.setListData(listData);
-        export.setListSettings(listSettings);
-        export.setListInternalOffsets(listInternalOffsets);
-        export.exportData(10);
+        // единицы измерения
+        // 0. Единицы измерения высоты:
+        // 1 - километры;
+        // любой другой ключ - метры
+        // 1. Единицы измерения скорости:
+        // 0 - м/с;
+        // 1 - км/ч;
+        // 2 - knot
+        int [] outputUnit = new int[] {0, 1};
 
 
+        // глобальное смещение всей таблицы, включая заголовок, по вертикали
+        int globalVerticalOffset = 0;
+
+        // смещение данных
+        int localVerticalOffset = 3;
+
+        // счетчик строк при экспорте данных.
+        int rowInc = 0;
+
+        //
+        int outputAltitudeInc = 10;
 
 
+        // экспортируем по-нормальному
+
+        // создание книги
+        XSSFWorkbook dataFile = new XSSFWorkbook();
+        // создание листа
+        XSSFSheet sheet = dataFile.createSheet("Result");
+
+        // экспорт заголовка
+        ExportHeading heading = new ExportHeading();
+        heading.exportHeading(sheet, this.listData, this.listInternalOffsets, outputUnit[0], outputUnit[1], globalVerticalOffset);
+
+        // экспорт данных
+        ExportData data = new ExportData();
+        rowInc = data.exportData(sheet, this.listData, this.listInternalOffsets, listSettings, outputUnit[0], outputUnit[1],
+                                    globalVerticalOffset, localVerticalOffset, rowInc, outputAltitudeInc, unitConverter);
+
+        // отрисовка графиков
+        ExportChart chart = new ExportChart();
+        chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, rowInc);
 
 
+        //System.out.println(rowInc);
 
 
+        // запись файла
+        writeFile(dataFile);
+        System.out.println("Your excel file has been generated!");
 
+    }
+
+    // запись файла на диск
+    private void writeFile (XSSFWorkbook file) throws IOException {
+        FileOutputStream out = new FileOutputStream("d:\\Data.xlsx");
+        file.write(out);
+        out.close();
+        file.close();
     }
 
 

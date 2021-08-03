@@ -4,8 +4,9 @@ import java.util.ArrayList;
 
 class Application {
 
-
     public static void main(String[] args) throws IOException, ParseException {
+
+
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
         float [] inputVelocity = new float[] {622.0f * 1000.0f / 60.0f / 60.0f,
@@ -66,6 +67,8 @@ class Application {
 
         // экспортируем второй вариант
         engine.dataArray(inputVelocity, inputMaxM);
+        engine.dataOutput();
+
 
 
 
