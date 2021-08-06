@@ -7,10 +7,10 @@ public class SolverAtmParam {
    private ModelАtmosphere atmParamCalc = new ModelАtmosphere();
 
    // заполнение блока высот. высота пишется в столбец с индексом, указанным пользователем в переменной index
-   public void getAltitude(float[][] dataArray, int index) {
+   public void getAltitude(float[][] dataArray, int index, float initAltitude) {
 
         for (int row = 0; row <= dataArray.length - 1; row++) {
-            dataArray[row][index] = row;
+            dataArray[row][index] = row + initAltitude;
         }
    }
 

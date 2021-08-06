@@ -17,26 +17,12 @@ class Application {
         // законодательное ограничение скоростей Vd и Vc по числу М: 0 - max Md; 1 - max Mc
         float [] inputMaxM = new float[] {0.88f, 0.82f};
 
-        // максимальная высота полета
-        float inputMaxAltitude = 12200.0f;
-        // приращение по высоте при выводе диаграммы
-        int outputAltitudeInc = 10;
-
-        // размерности блоков:
-        // 0 - высота блока/количество итераций (счетное, общая для всех);
-        // 1 - ширина блока высоты (счетное);
-        // 2 - ширина блока параметров атмосферы (счетное);
-        // 3 - ширина блока скорости (счетное);
-        // 4 - количество блоков скоростей (счетное).
-        int [] settingDimension = new int[] {(int) Math.ceil (inputMaxAltitude / 1.0f), 2, 4, 5,inputVelocity.length};
+        // диапазоны высот и приращение
+        float[] inputAltitude = new float[] {-300.0f, 12200.0f, 10.0f};
 
         // ограничения для скоростей в следующем порядке: Vd, Vc, Va, Vs
         // типы ограничений: 1 - ограничение сверху по значению маха; 2 - ограничение сверху махом другой скорости; 0 - ограничения отсутствуют
         int [] settingLimitType = new int[] {1, 1, 2, 0};
-
-        ArrayList <int[]> listSettings = new ArrayList <>();
-        listSettings.add(settingDimension);
-        listSettings.add(settingLimitType);
 
         // относительные положения параметров (внутренние смещения) в соответствующих массивах (блоках):
         // 0. Блок скоростей:
@@ -63,7 +49,7 @@ class Application {
         listInternalOffsets.add(internalOffsetsVelocity);
 
 
-        Engine engine = new Engine(listSettings, listInternalOffsets);
+        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude);
 
         // экспортируем второй вариант
         engine.dataArray(inputVelocity, inputMaxM);

@@ -15,7 +15,7 @@ public class ExportChart {
 
 
 
-    public void Chart (XSSFSheet sheet, ArrayList<int[]> listInternalOffsets, int globalVerticalOffset, int localVerticalOffset, int rowInc) {
+    public void Chart (XSSFSheet sheet, ArrayList<int[]> listInternalOffsets, int globalVerticalOffset, int localVerticalOffset, int[] rowEndIndex) {
 
 
         // типовые размеры лабуды на которой все рисуется
@@ -42,17 +42,16 @@ public class ExportChart {
 
         // индекс первой строки
         int firstRow = globalVerticalOffset + localVerticalOffset;
-        // индекс последней строки
-        int lastRow = rowInc + globalVerticalOffset + localVerticalOffset - 1;
 
         // выбор данных
         // значения горизонтальной оси
-        XDDFDataSource<Double> Md = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, lastRow, 7, 7));  // выбор столбца по двум точкам: 0, 1 - первая и последняя строка; 2, 3 - первый и последний столбец
-        XDDFDataSource<Double> Mc = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, lastRow, 12, 12));
-        XDDFDataSource<Double> Ma = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, lastRow, 17, 17));
-        XDDFDataSource<Double> Ms = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, lastRow, 22, 22));
+        XDDFDataSource<Double> Md = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[0], 7, 7));  // выбор столбца по двум точкам: 0, 1 - первая и последняя строка; 2, 3 - первый и последний столбец
+        XDDFDataSource<Double> Mc = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[1], 12, 12));
+        XDDFDataSource<Double> Ma = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[2], 17, 17));
+        XDDFDataSource<Double> Ms = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[3], 22, 22));
         // значения вертикальной оси
-        XDDFNumericalDataSource<Double> Altitude = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, lastRow, 0, 0));
+        XDDFNumericalDataSource<Double> Altitude = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[0], 0, 0));
+        XDDFNumericalDataSource<Double> AltitudeMa = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[2], 0, 0));
 
         // настройка подписи данных и выбор типа графика
         XDDFLineChartData data = (XDDFLineChartData)chart.createData(ChartTypes.LINE, bottomAxis, leftAxis);
@@ -67,7 +66,7 @@ public class ExportChart {
         series2.setSmooth(true);
         series2.setMarkerSize((short)6);
         series2.setMarkerStyle(MarkerStyle.TRIANGLE);
-        XDDFLineChartData.Series series3 = (XDDFLineChartData.Series)data.addSeries(Ma, Altitude);
+        XDDFLineChartData.Series series3 = (XDDFLineChartData.Series)data.addSeries(Ma, AltitudeMa);
         series3.setTitle("Ma", (CellReference)null);
         series3.setSmooth(true);
         series3.setMarkerSize((short)6);

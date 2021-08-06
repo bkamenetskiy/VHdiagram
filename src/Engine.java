@@ -14,34 +14,42 @@ import java.util.ArrayList;
 public class Engine {
 
     // конструктор
-    public Engine (ArrayList <int[]> listSettings, ArrayList <int[]> listInternalOffsets)
+    public Engine (int[] settingLimitType, ArrayList <int[]> listInternalOffsets, float[] inputAltitude)
 
     {
-        this.listSettings = listSettings;
+        this.settingLimitType = settingLimitType;
         this.listInternalOffsets = listInternalOffsets;
+        this.inputAltitude = inputAltitude;
     }
 
     // сокровищница
-    private ArrayList <int[]> listSettings;                                                                             // хранилище общих настроек
+    private int[] settingLimitType;                                                                             // хранилище общих настроек
     private ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
     private ArrayList <float[][]> listData = new ArrayList <>();                                                        // хранилище данных
+    private float[] inputAltitude;
 
     // решатели
     private SolverVelocity solverVelocity = new SolverVelocity();
     private SolverAtmParam solverAtmParam = new SolverAtmParam();
     private ModelUnits unitConverter = new ModelUnits();
 
+    // вспомогательные переменные
+    private int rowCount = 0;
+    private int[] rowEndIndex = new int[] {0, 0, 0, 0};
+
     // расчет скоростей в отдельных массивах
     public void dataArray (float[] inputVelocity, float[] inputMaxM) throws IOException {
 
+        this.rowCount = (int) Math.ceil ((Math.abs(inputAltitude[0]) + Math.abs(inputAltitude[1])) / 1.0f);
+
         // создание массивов
         float[][] blank = new float[0][0];                                                                              // заглушка
-        float[][] dataAltitude = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[1]];               // создали массив для хранения высот
-        float[][] dataAtmParam = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[2]];               // создали массив для хранения параметров атмосферы
-        float[][] dataVelocityVd = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[3]];             // создали массив для скорости Vd
-        float[][] dataVelocityVc = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[3]];             // создали массив для скорости Vc
-        float[][] dataVelocityVa = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[3]];             // создали массив для скорости Va
-        float[][] dataVelocityVs = new float[this.listSettings.get(0)[0] + 1][this.listSettings.get(0)[3]];             // создали массив для скорости Vs
+        float[][] dataAltitude = new float[rowCount + 1][2];               // создали массив для хранения высот
+        float[][] dataAtmParam = new float[rowCount + 1][4];               // создали массив для хранения параметров атмосферы
+        float[][] dataVelocityVd = new float[rowCount + 1][5];             // создали массив для скорости Vd
+        float[][] dataVelocityVc = new float[rowCount + 1][5];             // создали массив для скорости Vc
+        float[][] dataVelocityVa = new float[rowCount + 1][5];             // создали массив для скорости Va
+        float[][] dataVelocityVs = new float[rowCount + 1][5];             // создали массив для скорости Vs
 
         // скинули в хранилище
         this.listData.add(dataAltitude);
@@ -52,20 +60,20 @@ public class Engine {
         this.listData.add(dataVelocityVs);
 
         // записали высоты
-        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0]);
+        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0], this.inputAltitude[0]);
         // записали атмосферу
         solverAtmParam.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
         // записали скорость Vd
-        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, inputVelocity[0], inputMaxM[0], this.listSettings.get(1)[0], blank);
+        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, inputVelocity[0], inputMaxM[0], this.settingLimitType[0], blank);
         // записали скорость Vc
-        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, inputVelocity[1], inputMaxM[1], this.listSettings.get(1)[1], blank);
+        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, inputVelocity[1], inputMaxM[1], this.settingLimitType[1], blank);
         // записали скорость Va
-        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, inputVelocity[2], inputMaxM[1], this.listSettings.get(1)[2], dataVelocityVc);
+        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, inputVelocity[2], inputMaxM[1], this.settingLimitType[2], dataVelocityVc);
         // записали скорость Vs
-        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, inputVelocity[3], -1.0f, this.listSettings.get(1)[3], blank);
+        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, inputVelocity[3], -1.0f, this.settingLimitType[3], blank);
 
         // выводим в консоль
-        for (float[]floats : this.listData.get(3)) {
+        for (float[]floats : this.listData.get(0)) {
             System.out.println();
             for (float result : floats) {
                 System.out.printf("%.6f", result);
@@ -95,19 +103,10 @@ public class Engine {
         // смещение данных
         int localVerticalOffset = 3;
 
-        // счетчик строк при экспорте данных.
-        int rowInc = 0;
-
-        //
-        int outputAltitudeInc = 10;
-
-
-        // экспортируем по-нормальному
-
         // создание книги
-        XSSFWorkbook dataFile = new XSSFWorkbook();
+        XSSFWorkbook dataBook = new XSSFWorkbook();
         // создание листа
-        XSSFSheet sheet = dataFile.createSheet("Result");
+        XSSFSheet sheet = dataBook.createSheet("Result");
 
         // экспорт заголовка
         ExportHeading heading = new ExportHeading();
@@ -115,19 +114,15 @@ public class Engine {
 
         // экспорт данных
         ExportData data = new ExportData();
-        rowInc = data.exportData(sheet, this.listData, this.listInternalOffsets, listSettings, outputUnit[0], outputUnit[1],
-                                    globalVerticalOffset, localVerticalOffset, rowInc, outputAltitudeInc, unitConverter);
+        data.exportData(sheet, this.listData, this.listInternalOffsets, outputUnit[0], outputUnit[1],
+                                    globalVerticalOffset, localVerticalOffset, (int) this.inputAltitude[2], unitConverter, this.rowCount, this.rowEndIndex, dataBook);
 
         // отрисовка графиков
         ExportChart chart = new ExportChart();
-        chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, rowInc);
-
-
-        //System.out.println(rowInc);
-
+        chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex);
 
         // запись файла
-        writeFile(dataFile);
+        writeFile(dataBook);
         System.out.println("Your excel file has been generated!");
 
     }
