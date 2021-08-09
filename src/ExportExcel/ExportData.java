@@ -18,32 +18,34 @@ public class ExportData {
         CellsStyle cellStyle = new CellsStyle();
 
         // экспорт данных
-        int rowAltitude = 0;                                                                                            // счетчик строк в массивах данных
-        int rowSheet = 0;                                                                                               // счетчик строк в листе excel
+        int rowAltitudeInc = 0;                                                                                         // счетчик строк в массивах данных
+        int rowSheetInc = 0;                                                                                            // счетчик строк в листе excel
 
-        float conversionAltitude;                                                                                       // вспомогательная переменная для конвертации высот
-        float conversionVelocity;                                                                                       // вспомогательная переменная для конвертации скоростей
+        float currentValueAltitude;                                                                                     // вспомогательная переменная для конвертации высот
+        float currentValueVelocity;                                                                                     // вспомогательная переменная для конвертации скоростей
 
         //
-        while (rowAltitude <= rowCount) {
+        while (rowAltitudeInc <= rowCount) {
 
-            XSSFRow rowData = sheet.createRow(rowSheet + localVerticalOffset + globalVerticalOffset);             // создание строки, с номером rowSheet с глобальным смещением вниз на высоту шапки таблицы localVerticalOffset
+            XSSFRow rowData = sheet.createRow(rowSheetInc + localVerticalOffset + globalVerticalOffset);        // создание строки, с номером rowSheetInc с глобальным смещением вниз на высоту шапки таблицы localVerticalOffset
 
             // блок высот
             for (int column = 0; column <= listData.get(0)[0].length - 1; column++) {                                   // перебор столбцов блока высот от нулевого до последнего
 
-                conversionAltitude = listData.get(0)[rowAltitude] [listInternalOffsets.get(0)[0]];                          // установка текущей высоты в метрах
+                currentValueAltitude = listData.get(0)[rowAltitudeInc] [listInternalOffsets.get(0)[0]];                 // установка текущей высоты в метрах
 
                 // экспорт высоты в метрах
                 if (column == listInternalOffsets.get(0)[0]) {
 
                     switch (unitAltitude) {
-                        case 1:
-                            conversionAltitude = unitConverter.getLengthKilometer(conversionAltitude);                  // конвертация из метров в километры
-                            rowData.createCell(column).setCellValue(conversionAltitude);                                // создание ячейки в строке с номером rowData и номером столбца column, запись в нее элемента Altitude
+                        case 1:                                                                                         // конвертация из метров в километры
+                            currentValueAltitude = unitConverter.getLengthKilometer(currentValueAltitude);
+                            cellStyle.createCell(dataBook, rowData, column, HorizontalAlignment.CENTER,
+                                                    VerticalAlignment.CENTER, currentValueAltitude, "0.000");
                             break;
-                        default:
-                            rowData.createCell(column).setCellValue(conversionAltitude);                                // по умолчанию заполняется метрами
+                        default:                                                                                        // по умолчанию заполняется метрами
+                            cellStyle.createCell(dataBook, rowData, column, HorizontalAlignment.CENTER,
+                                                    VerticalAlignment.CENTER, currentValueAltitude, "0.0");
                             break;
                     }
                 }
@@ -51,8 +53,9 @@ public class ExportData {
                 // экспорт высоты в футах
                 if (column == listInternalOffsets.get(0)[1]) {
 
-                    conversionAltitude = unitConverter.getLengthFoot(conversionAltitude);                                 // конвертация из метров в футы
-                    rowData.createCell(column).setCellValue(conversionAltitude);
+                    currentValueAltitude = unitConverter.getLengthFoot(currentValueAltitude);                           // конвертация из метров в футы
+                    cellStyle.createCell(dataBook, rowData, column, HorizontalAlignment.CENTER,
+                                            VerticalAlignment.CENTER, currentValueAltitude, "0.0");
 
                 }
             }
@@ -60,17 +63,38 @@ public class ExportData {
             // блок атмосферы. экспортируется как есть, без конвертации
             for (int column = 0; column <= listData.get(1)[0].length - 1; column++) {
 
-                rowData.createCell(column + listData.get(0)[0].length).setCellValue(listData.get(1)[rowAltitude][column]);
+                // экспорт плотности
+                if (column == listInternalOffsets.get(1)[0]) {
 
-                // установка параметров выравнивания ячейки
-                cellStyle.setCellAlignment(dataBook, rowData, column + listData.get(0)[0].length, HorizontalAlignment.CENTER, VerticalAlignment.CENTER);
-                // установка формата значения в ячейке
-                cellStyle.setCellFormat(dataBook, rowData, column + listData.get(0)[0].length, "0.000");
+                    cellStyle.createCell(dataBook, rowData, column + listData.get(0)[0].length, HorizontalAlignment.CENTER,
+                                            VerticalAlignment.CENTER, listData.get(1)[rowAltitudeInc][column], "0.0000");
+                }
 
+                // экспорт атмосферного давления
+                if (column == listInternalOffsets.get(1)[1]) {
 
+                    cellStyle.createCell(dataBook, rowData, column + listData.get(0)[0].length, HorizontalAlignment.CENTER,
+                                            VerticalAlignment.CENTER, listData.get(1)[rowAltitudeInc][column], "0.0");
+                }
+
+                // экспорт температуры
+                if (column == listInternalOffsets.get(1)[2]) {
+
+                    cellStyle.createCell(dataBook, rowData, column + listData.get(0)[0].length, HorizontalAlignment.CENTER,
+                                            VerticalAlignment.CENTER, listData.get(1)[rowAltitudeInc][column], "0.0");
+                }
+
+                // экспорт скорости звука
+                if (column == listInternalOffsets.get(1)[3]) {
+
+                    cellStyle.createCell(dataBook, rowData, column + listData.get(0)[0].length, HorizontalAlignment.CENTER,
+                                            VerticalAlignment.CENTER, listData.get(1)[rowAltitudeInc][column], "0.00");
+                }
+                // старый вариант
+                //rowData.createCell(column + listData.get(0)[0].length).setCellValue(listData.get(1)[rowAltitudeInc][column]);
             }
 
-            // блок скорости. перебор массивов скоростей. 2 - место, с которого начинаются блоки скорости в dataList
+            // блок скорости. перебор массивов скоростей. 2 - место, с которого начинаются скорости в dataList
             for (int i = 2; i < listData.size(); i++) {
 
                 // вспомогательная переменная. считает смещение текущего блока скорости i относительно уже экспортированных
@@ -79,92 +103,103 @@ public class ExportData {
                 // экспорт данных из блока i
                 for (int column = 0; column <= listData.get(i)[0].length - 1; column++) {
 
-                    // вспомогательная переменная. хранит посчитанное текущеее значение взятое из блока скорости
-                    conversionVelocity = listData.get(i)[rowAltitude][column];
+                    // вспомогательная переменная. хранит значение взятое из блока скорости до конвертации
+                    currentValueVelocity = listData.get(i)[rowAltitudeInc][column];
 
                     // конвертация Vcas и отсечение отрицательных значений
-                    if ((column == listInternalOffsets.get(2)[0]) & (conversionVelocity >= 0.0f)) {
+                    if ((column == listInternalOffsets.get(2)[0]) & (currentValueVelocity >= 0.0f)) {
 
                         switch (unitVelocity) {
-                            case 0:
-                                rowData.createCell(offset + column).setCellValue(conversionVelocity);
+                            case 0:                                                                                     // метры. не конвертируется
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, currentValueVelocity, "0.0000");
                                 break;
-                            case 1:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKm(conversionVelocity));
+                            case 1:                                                                                     // конвертация м/с в км/ч
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKm(currentValueVelocity), "0.0");
                                 break;
-                            case 2:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKt(conversionVelocity));
+                            case 2:                                                                                     // конвертация м/с в узлы
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKt(currentValueVelocity), "0.000");
                                 break;
                         }
                     }
 
                     // проверка маха на отрицательные значения
-                    if ((column == listInternalOffsets.get(2)[1]) & (conversionVelocity >= 0.0f)) {
+                    if ((column == listInternalOffsets.get(2)[1]) & (currentValueVelocity >= 0.0f)) {
 
-                        rowData.createCell(offset + column).setCellValue(conversionVelocity);
+                        cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                VerticalAlignment.CENTER, currentValueVelocity, "0.000");
 
-                        // Ma граничен сверху Mc, при этом, если Ma превышает предельное значение, он обращается в -1.
-                        // Для корректного построения графика необходимо определить последнюю строку, в котрой Ma больше 0. И это только один из нескольких возможных частных случаев
+                        // Ma граничен сверху Mc, при этом, если Ma превышает предельное значение, он обращается в -1. И это только один из нескольких возможных частных случаев, возможных при рассчетах
+                        // Для корректного построения графика необходимо определить последнюю строку, в котрой Ma больше 0.
                         // по этому в rowEndIndex пишутся индексы последних строк каждого из блоков скоростей
                         switch (i) {
                             case 2:
-                                rowEndIndex[0] = rowSheet;
+                                rowEndIndex[0] = rowSheetInc;
                                 break;
                             case 3:
-                                rowEndIndex[1] = rowSheet;
+                                rowEndIndex[1] = rowSheetInc;
                                 break;
                             case 4:
-                                rowEndIndex[2] = rowSheet;
+                                rowEndIndex[2] = rowSheetInc;
                                 break;
                             case 5:
-                                rowEndIndex[3] = rowSheet;
+                                rowEndIndex[3] = rowSheetInc;
                                 break;
                         }
                     }
 
                     // конвертация Vtas и отсечение отрицательных значений
-                    if ((column == listInternalOffsets.get(2)[2]) & (conversionVelocity >= 0.0f)) {
+                    if ((column == listInternalOffsets.get(2)[2]) & (currentValueVelocity >= 0.0f)) {
 
                         switch (unitVelocity) {
-                            case 0:
-                                rowData.createCell(offset + column).setCellValue(conversionVelocity);
+                            case 0:                                                                                     // метры. не конвертируется
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, currentValueVelocity, "0.0000");
                                 break;
-                            case 1:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKm(conversionVelocity));
+                            case 1:                                                                                     // конвертация м/с в км/ч
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKm(currentValueVelocity), "0.0");
                                 break;
-                            case 2:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKt(conversionVelocity));
+                            case 2:                                                                                     // конвертация м/с в узлы
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKt(currentValueVelocity), "0.000");
                                 break;
                         }
                     }
 
                     // конвертация Veas и отсечение отрицательных значений
-                    if ((column == listInternalOffsets.get(2)[3]) & (conversionVelocity >= 0.0f)) {
+                    if ((column == listInternalOffsets.get(2)[3]) & (currentValueVelocity >= 0.0f)) {
 
                         switch (unitVelocity) {
-                            case 0:
-                                rowData.createCell(offset + column).setCellValue(conversionVelocity);
+                            case 0:                                                                                     // метры. не конвертируется
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, currentValueVelocity, "0.0000");
                                 break;
-                            case 1:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKm(conversionVelocity));
+                            case 1:                                                                                     // конвертация м/с в км/ч
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKm(currentValueVelocity), "0.0");
                                 break;
-                            case 2:
-                                rowData.createCell(offset + column).setCellValue(unitConverter.getVelocityKt(conversionVelocity));
+                            case 2:                                                                                     // конвертация м/с в узлы
+                                cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                        VerticalAlignment.CENTER, unitConverter.getVelocityKt(currentValueVelocity), "0.000");
                                 break;
                         }
                     }
 
                     // проверка скоростного напора на отрицательные значения
-                    if ((column == listInternalOffsets.get(2)[4]) & (conversionVelocity >= 0.0f)) {
+                    if ((column == listInternalOffsets.get(2)[4]) & (currentValueVelocity >= 0.0f)) {
 
-                        rowData.createCell(offset + column).setCellValue(conversionVelocity);
+                        cellStyle.createCell(dataBook, rowData, offset + column, HorizontalAlignment.CENTER,
+                                                VerticalAlignment.CENTER, unitConverter.getVelocityKt(currentValueVelocity), "0.0");
 
                     }
                 }
             }
 
-            rowAltitude = rowAltitude + outputAltitudeInc;                                                                      // установка значения следующей высоты для вывода
-            rowSheet++;                                                                                                   // установка индекса следующей строки
+            rowAltitudeInc = rowAltitudeInc + outputAltitudeInc;                                                              // установка значения следующей высоты для вывода
+            rowSheetInc++;                                                                                                 // установка индекса следующей строки
         }
 
     }

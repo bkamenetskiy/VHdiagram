@@ -20,6 +20,16 @@ class Application {
         // диапазоны высот и приращение
         float[] inputAltitude = new float[] {-300.0f, 12200.0f, 10.0f};
 
+        // единицы измерения вывода
+        // 0. Единицы измерения высоты:
+        // 1 - километры;
+        // любой другой ключ - метры
+        // 1. Единицы измерения скорости:
+        // 0 - м/с;
+        // 1 - км/ч;
+        // 2 - knot
+        int [] outputUnit = new int[] {0, 1};
+
         // ограничения для скоростей в следующем порядке: Vd, Vc, Va, Vs
         // типы ограничений: 1 - ограничение сверху по значению маха; 2 - ограничение сверху махом другой скорости; 0 - ограничения отсутствуют
         int [] settingLimitType = new int[] {1, 1, 2, 0};
@@ -40,7 +50,7 @@ class Application {
         // 3 - относительное положение V (EAS) (индекс);
         // 4 - относительное положение q (индекс).
         int [] internalOffsetsAltitude = new int[] {0, 1};
-        int [] internalOffsetsAtmParam = new int[] {3, 1, 2, 0};
+        int [] internalOffsetsAtmParam = new int[] {0, 1, 2, 3};
         int [] internalOffsetsVelocity = new int[] {4, 1, 2, 3, 0};
 
         ArrayList <int []> listInternalOffsets = new ArrayList <>();                                                    // хранилище внутренних (относительных) смещений
@@ -49,7 +59,7 @@ class Application {
         listInternalOffsets.add(internalOffsetsVelocity);
 
 
-        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude);
+        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude, outputUnit);
 
         // экспортируем второй вариант
         engine.dataArray(inputVelocity, inputMaxM);

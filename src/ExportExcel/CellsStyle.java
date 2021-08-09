@@ -2,68 +2,88 @@ package ExportExcel;
 
 import org.apache.poi.ss.usermodel.*;
 
-public class CellsStyle {
+class CellsStyle {
+
+    private Cell cell;
+    private CellStyle cellStyle;
+    private DataFormat formatCell;
+
 
     // настройки выравнивания для уже созданной ячейки - column
-    public void setCellAlignment(Workbook wb, Row row, int column, HorizontalAlignment halign, VerticalAlignment valign) {
+    protected void setCellAlignment(Workbook wb, Row row, int column, HorizontalAlignment halign, VerticalAlignment valign) {
 
-        // объект типа ячейка. column - индекс ячейки
-        Cell cell = row.getCell(column);
-        // объект типа стиль ячейки
-        CellStyle cellStyle = wb.createCellStyle();
-        // объект типа формат ячейки
-        DataFormat format = wb.createDataFormat();
+        // ячейка. column - индекс ячейки
+        this.cell = row.getCell(column);
+        // стиль ячейки
+        this.cellStyle = wb.createCellStyle();
 
         // настройки стиля. настройка выравниваний
-        cellStyle.setAlignment(halign);
-        cellStyle.setVerticalAlignment(valign);
+        this.cellStyle.setAlignment(halign);
+        this.cellStyle.setVerticalAlignment(valign);
 
         // присвоение стиля ячейке
-        cell.setCellStyle(cellStyle);
+        this.cell.setCellStyle(this.cellStyle);
 
     }
 
-    // настройки формата значения в уже созданной ячейки - column
-    public void setCellFormat(Workbook wb, Row row, int column, String format) {
+    // настройки формата значения в уже созданной ячейке
+    protected void setCellFormat(Workbook wb, Row row, int column, String format) {
 
-        // объект типа ячейка. column - индекс ячейки
-        Cell cell = row.getCell(column);
-        // объект типа стиль ячейки
-        CellStyle cellStyle = wb.createCellStyle();
-        // объект типа формат ячейки
-        DataFormat formatCell = wb.createDataFormat();
+        // ячейка. column - индекс ячейки
+        this.cell = row.getCell(column);
+        // стиль ячейки
+        this.cellStyle = wb.createCellStyle();
+        // формат ячейки
+        this.formatCell = wb.createDataFormat();
 
         // настройки стиля. настройка формата
-        cellStyle.setDataFormat(formatCell.getFormat(format));
+        this.cellStyle.setDataFormat(this.formatCell.getFormat(format));
 
         // присвоение стиля ячейке
-        cell.setCellStyle(cellStyle);
+        this.cell.setCellStyle(this.cellStyle);
 
     }
 
+    // создание ячейки с заданным выравниванием и настройками разрядности для числа
+    protected void createCell(Workbook wb, Row row, int column, HorizontalAlignment halign, VerticalAlignment valign, float cellValue, String format) {
 
-    // создание ячейки с заданным выравниванием и форматом
-    public void createCell(Workbook wb, Row row, int column, HorizontalAlignment halign, VerticalAlignment valign, float cellValue, String format1) {
-
-        // объект типа ячейка
-        Cell cell = row.createCell(column);
+        // ячейка
+        this.cell = row.createCell(column);
         // присваивание ячейки значения
-        cell.setCellValue(cellValue);
-
-        // объект типа стиль ячейки
-        CellStyle cellStyle = wb.createCellStyle();
-
-        // объект типа формат ячейки
-        DataFormat format = wb.createDataFormat();
+        this.cell.setCellValue(cellValue);
+        // стиль ячейки
+        this.cellStyle = wb.createCellStyle();
+        // формат ячейки
+        this.formatCell = wb.createDataFormat();
 
         // настройки стиля. настройка выравниваний
-        cellStyle.setAlignment(halign);
-        cellStyle.setVerticalAlignment(valign);
-        cellStyle.setDataFormat(format.getFormat(format1));
+        this.cellStyle.setAlignment(halign);
+        this.cellStyle.setVerticalAlignment(valign);
+        this.cellStyle.setDataFormat(this.formatCell.getFormat(format));
 
-        // присвояние стиля ячейке
-        cell.setCellStyle(cellStyle);
-
+        // присвоение стиля ячейке
+        this.cell.setCellStyle(this.cellStyle);
     }
+
+    // создание ячейки с заданным выравниванием (для строки)
+    protected void createCell(Workbook wb, Row row, int column, HorizontalAlignment halign, VerticalAlignment valign, float cellValue) {
+
+        // ячейка
+        this.cell = row.createCell(column);
+        // присваивание ячейки значения
+        this.cell.setCellValue(cellValue);
+        // стиль ячейки
+        this.cellStyle = wb.createCellStyle();
+        // формат ячейки
+        this.formatCell = wb.createDataFormat();
+
+        // настройки стиля. настройка выравниваний
+        this.cellStyle.setAlignment(halign);
+        this.cellStyle.setVerticalAlignment(valign);
+
+        // присвоение стиля ячейке
+        this.cell.setCellStyle(this.cellStyle);
+    }
+
 
 }

@@ -14,12 +14,13 @@ import java.util.ArrayList;
 public class Engine {
 
     // конструктор
-    public Engine (int[] settingLimitType, ArrayList <int[]> listInternalOffsets, float[] inputAltitude)
+    public Engine (int[] settingLimitType, ArrayList <int[]> listInternalOffsets, float[] inputAltitude, int[] outputUnit)
 
     {
         this.settingLimitType = settingLimitType;
         this.listInternalOffsets = listInternalOffsets;
         this.inputAltitude = inputAltitude;
+        this.outputUnit = outputUnit;
     }
 
     // сокровищница
@@ -27,6 +28,7 @@ public class Engine {
     private ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
     private ArrayList <float[][]> listData = new ArrayList <>();                                                        // хранилище данных
     private float[] inputAltitude;
+    private int[] outputUnit;
 
     // решатели
     private SolverVelocity solverVelocity = new SolverVelocity();
@@ -34,22 +36,22 @@ public class Engine {
     private ModelUnits unitConverter = new ModelUnits();
 
     // вспомогательные переменные
-    private int rowCount = 0;
-    private int[] rowEndIndex = new int[] {0, 0, 0, 0};
+    private int rowCount;                                                                                               // размерность массива
+    private int[] rowEndIndex = new int[] {0, 0, 0, 0};                                                                 // счетчик индексов строк, на которых остановился экспорт скорости
 
-    // расчет скоростей в отдельных массивах
+    // расчет скоростей
     public void dataArray (float[] inputVelocity, float[] inputMaxM) throws IOException {
 
         this.rowCount = (int) Math.ceil ((Math.abs(inputAltitude[0]) + Math.abs(inputAltitude[1])) / 1.0f);
 
         // создание массивов
         float[][] blank = new float[0][0];                                                                              // заглушка
-        float[][] dataAltitude = new float[rowCount + 1][2];               // создали массив для хранения высот
-        float[][] dataAtmParam = new float[rowCount + 1][4];               // создали массив для хранения параметров атмосферы
-        float[][] dataVelocityVd = new float[rowCount + 1][5];             // создали массив для скорости Vd
-        float[][] dataVelocityVc = new float[rowCount + 1][5];             // создали массив для скорости Vc
-        float[][] dataVelocityVa = new float[rowCount + 1][5];             // создали массив для скорости Va
-        float[][] dataVelocityVs = new float[rowCount + 1][5];             // создали массив для скорости Vs
+        float[][] dataAltitude = new float[rowCount + 1][2];                                                            // массив для хранения высот
+        float[][] dataAtmParam = new float[rowCount + 1][4];                                                            // массив для хранения параметров атмосферы
+        float[][] dataVelocityVd = new float[rowCount + 1][5];                                                          // массив для скорости Vd
+        float[][] dataVelocityVc = new float[rowCount + 1][5];                                                          // массив для скорости Vc
+        float[][] dataVelocityVa = new float[rowCount + 1][5];                                                          // массив для скорости Va
+        float[][] dataVelocityVs = new float[rowCount + 1][5];                                                          // массив для скорости Vs
 
         // скинули в хранилище
         this.listData.add(dataAltitude);
@@ -86,17 +88,6 @@ public class Engine {
     // экспорт в excel
     void dataOutput () throws IOException {
 
-        // единицы измерения
-        // 0. Единицы измерения высоты:
-        // 1 - километры;
-        // любой другой ключ - метры
-        // 1. Единицы измерения скорости:
-        // 0 - м/с;
-        // 1 - км/ч;
-        // 2 - knot
-        int [] outputUnit = new int[] {0, 1};
-
-
         // глобальное смещение всей таблицы, включая заголовок, по вертикали
         int globalVerticalOffset = 0;
 
@@ -110,11 +101,11 @@ public class Engine {
 
         // экспорт заголовка
         ExportHeading heading = new ExportHeading();
-        heading.exportHeading(sheet, this.listData, this.listInternalOffsets, outputUnit[0], outputUnit[1], globalVerticalOffset);
+        heading.exportHeading(sheet, this.listData, this.listInternalOffsets, this.outputUnit[0], this.outputUnit[1], globalVerticalOffset);
 
         // экспорт данных
         ExportData data = new ExportData();
-        data.exportData(sheet, this.listData, this.listInternalOffsets, outputUnit[0], outputUnit[1],
+        data.exportData(sheet, this.listData, this.listInternalOffsets, this.outputUnit[0], this.outputUnit[1],
                                     globalVerticalOffset, localVerticalOffset, (int) this.inputAltitude[2], unitConverter, this.rowCount, this.rowEndIndex, dataBook);
 
         // отрисовка графиков
