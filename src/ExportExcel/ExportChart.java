@@ -1,4 +1,4 @@
-package ExportExcel;
+package exportexcel;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.CellReference;

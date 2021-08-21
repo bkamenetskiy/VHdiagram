@@ -1,7 +1,6 @@
-import ExportExcel.ExportChart;
-import ExportExcel.ExportData;
-import ExportExcel.ExportHeading;
-import models.ModelUnits;
+import exportexcel.ExportChart;
+import exportexcel.ExportData;
+import exportexcel.ExportHeading;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import solvers.SolverAtmParam;
@@ -33,7 +32,6 @@ public class Engine {
     // решатели
     private SolverVelocity solverVelocity = new SolverVelocity();
     private SolverAtmParam solverAtmParam = new SolverAtmParam();
-    private ModelUnits unitConverter = new ModelUnits();
 
     // вспомогательные переменные
     private int rowCount;                                                                                               // размерность массива
@@ -74,6 +72,7 @@ public class Engine {
         // записали скорость Vs
         solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, inputVelocity[3], -1.0f, this.settingLimitType[3], blank);
 
+        /*
         // выводим в консоль
         for (float[]floats : this.listData.get(0)) {
             System.out.println();
@@ -82,6 +81,7 @@ public class Engine {
                 System.out.print("     ");
             }
         }
+        */
     }
 
 
@@ -91,7 +91,7 @@ public class Engine {
         // глобальное смещение всей таблицы, включая заголовок, по вертикали
         int globalVerticalOffset = 0;
 
-        // смещение данных
+        // смещение таблицы с данными
         int localVerticalOffset = 3;
 
         // создание книги
@@ -101,16 +101,16 @@ public class Engine {
 
         // экспорт заголовка
         ExportHeading heading = new ExportHeading();
-        heading.exportHeading(sheet, this.listData, this.listInternalOffsets, this.outputUnit[0], this.outputUnit[1], globalVerticalOffset);
+        heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, this.outputUnit, globalVerticalOffset);
 
         // экспорт данных
         ExportData data = new ExportData();
-        data.exportData(sheet, this.listData, this.listInternalOffsets, this.outputUnit[0], this.outputUnit[1],
-                                    globalVerticalOffset, localVerticalOffset, (int) this.inputAltitude[2], unitConverter, this.rowCount, this.rowEndIndex, dataBook);
+        data.exportData(dataBook, sheet, this.listData, this.listInternalOffsets,
+                                    globalVerticalOffset, localVerticalOffset, (int) this.inputAltitude[2], this.rowCount, this.rowEndIndex);
 
         // отрисовка графиков
         ExportChart chart = new ExportChart();
-        chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex);
+        //chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex);
 
         // запись файла
         writeFile(dataBook);

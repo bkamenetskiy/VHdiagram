@@ -1,132 +1,79 @@
-package ExportExcel;
+package exportexcel;
 
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.util.ArrayList;
 
 public class ExportHeading {
 
-    public void exportHeading (XSSFSheet sheet, ArrayList <float[][]> listData, ArrayList <int[]> listInternalOffsets,
-                               int unitAltitude, int unitVelocity, int globalVerticalOffset) {
+    private ArrayList <int[]> listInternalOffsets;
 
-        String[] headingTypeAtmParam = new String[] {"Плотность", "Атм. давление", "Температура", "Скорость звука"};
-        String[] headingTypeVelocity = new String[] {"Vcas", "M", "Vtas", "Veas", "q"};
+    public void exportHeading (XSSFWorkbook dataBook, XSSFSheet sheet, ArrayList<float[][]> listData, ArrayList<int[]> listInternalOffsets,
+                               int[] outputUnit, int globalVerticalOffset) {
 
-        String[] headingUnitVelocity = new String[] {"м/с", "км/ч", "knot"};
-        String[] headingUnitLength = new String[] {"м", "км", "фут"};
-        String[] headingUnitPressure = new String[] {"Па", "кг/см^2"};
-        String[] headingUnitTemp = new String[] {"K", "C", "F"};
+        CellsStyle cellStyle = new CellsStyle();
+        this.listInternalOffsets = listInternalOffsets;
 
         // вспомогательные переменные
-        int rowName = 0 + globalVerticalOffset;
-        int rowType = 1 + globalVerticalOffset;
-        int rowUnit = 2 + globalVerticalOffset;
+        int rowName = 0 + globalVerticalOffset;                                                                         // номер строки с названием блока
+        int rowType = 1 + globalVerticalOffset;                                                                         // номер строки с названием (типом) величины
+        int rowUnit = 2 + globalVerticalOffset;                                                                         // номер строки с единицами измерения величины
 
-        XSSFRow rowHeading;                                                                                             // создание строк для заголовка
+        XSSFRow rowHeading;                                                                                             // создание строк для заголовка таблицы
         sheet.createRow(rowName);
         sheet.createRow(rowType);
         sheet.createRow(rowUnit);
 
         // заголовок блока высот
         rowHeading = sheet.getRow(rowName);
-        rowHeading.createCell(0).setCellValue("Высота");
+        cellStyle.createCell(dataBook, rowHeading, 0, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, "Высота");
         sheet.addMergedRegion(new CellRangeAddress(rowName, rowType, 0, listData.get(0)[0].length - 1));
 
         // блок высот
         for (int column = 0; column <= listData.get(0)[0].length - 1; column++) {
 
-            // высота в метрах
-            if (column == listInternalOffsets.get(0)[0]) {
+            // перебор условий для определения единиц измерений
+            for (int j = 0; j <= listInternalOffsets.get(0).length - 1; j++) {
 
-                // единицы измерения
-                switch (unitAltitude) {
-                    case 1:
-                        rowHeading = sheet.getRow(rowUnit);
-                        rowHeading.createCell(column).setCellValue(headingUnitLength[1]);
-                        break;
-                    default:
-                        rowHeading = sheet.getRow(rowUnit);
-                        rowHeading.createCell(column).setCellValue(headingUnitLength[0]);
-                        break;
+                if (column == listInternalOffsets.get(0)[j]) {
+
+                    // единицы измерения
+                    rowHeading = sheet.getRow(rowUnit);
+                    cellStyle.createCell(dataBook, rowHeading, column, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, outputUnitAltitude(column, outputUnit));
                 }
-            }
-
-            // высота в футах
-            if (column == listInternalOffsets.get(0)[1]) {
-
-                // единицы измерения
-                rowHeading = sheet.getRow(rowUnit);
-                rowHeading.createCell(column).setCellValue(headingUnitLength[2]);
-
             }
         }
 
         // заголовок блока атмосферы
         rowHeading = sheet.getRow(rowName);
-        rowHeading.createCell(listData.get(0)[0].length).setCellValue("Параметры атмосферы");
+        cellStyle.createCell(dataBook, rowHeading, listData.get(0)[0].length, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, "Параметры атмосферы");
         sheet.addMergedRegion(new CellRangeAddress(rowName, rowName, listData.get(0)[0].length, listData.get(0)[0].length + listData.get(1)[0].length - 1));
 
-
-        // блок параметров атмосферы
+        // блок параметров атмосферы. перебор столбцов в блоке
         for (int column = 0; column <= listData.get(1)[0].length - 1; column++) {
 
-            // заголовок плотности
-            if (column == listInternalOffsets.get(1)[0]) {
+            // перебор условий для определения единиц измерений
+            for (int j = 0; j <= listInternalOffsets.get(1).length - 1; j++) {
 
-                // название
-                rowHeading = sheet.getRow(rowType);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingTypeAtmParam[0]);
+                if (column == listInternalOffsets.get(1)[j]) {
 
-                // единицы измерения
-                rowHeading = sheet.getRow(rowUnit);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue("кг/м^3");
+                    // название (тип) величины
+                    rowHeading = sheet.getRow(rowType);
+                    cellStyle.createCell(dataBook, rowHeading, column + listData.get(0)[0].length, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, atmParamType(j));
 
-            }
-
-            // заголовок атмосферного давления
-            if (column == listInternalOffsets.get(1)[1]) {
-
-                // название
-                rowHeading = sheet.getRow(rowType);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingTypeAtmParam[1]);
-
-                // единицы измерения
-                rowHeading = sheet.getRow(rowUnit);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingUnitPressure[0]);
-
-            }
-
-            // заголовок температуры
-            if (column == listInternalOffsets.get(1)[2]) {
-
-                // название
-                rowHeading = sheet.getRow(rowType);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingTypeAtmParam[2]);
-
-                // единицы измерения
-                rowHeading = sheet.getRow(rowUnit);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingUnitTemp[0]);
-
-            }
-
-            // заголовок скорости звука
-            if (column == listInternalOffsets.get(1)[3]) {
-
-                // название
-                rowHeading = sheet.getRow(rowType);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingTypeAtmParam[3]);
-
-                // единицы измерения
-                rowHeading = sheet.getRow(rowUnit);
-                rowHeading.createCell(column + listData.get(0)[0].length).setCellValue(headingUnitVelocity[0]);
-
+                    // единицы измерения
+                    rowHeading = sheet.getRow(rowUnit);
+                    cellStyle.createCell(dataBook, rowHeading, column + listData.get(0)[0].length, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, outputUnitAtmParam(column, outputUnit));
+                }
             }
         }
 
-
-        // блок скоростей
+        // перебор блоков скоростей
         for (int i = 2; i < listData.size(); i++) {
 
             // вспомогательная переменная. считает смещение текущего блока скорости i относительно уже экспортированных
@@ -134,138 +81,199 @@ public class ExportHeading {
 
             // заголовок блока скоростей
             rowHeading = sheet.getRow(rowName);
-
-            switch (i) {
-                case 2:
-                    rowHeading.createCell(offset).setCellValue("Vd");
-                    break;
-                case 3:
-                    rowHeading.createCell(offset).setCellValue("Vc");
-                    break;
-                case 4:
-                    rowHeading.createCell(offset).setCellValue("Va");
-                    break;
-                case 5:
-                    rowHeading.createCell(offset).setCellValue("Vs");
-                    break;
-                default:
-                    rowHeading.createCell(offset).setCellValue("Неизвестный тип");
-                    break;
-            }
+            cellStyle.createCell(dataBook, rowHeading, offset, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, velocityName(i));
             sheet.addMergedRegion(new CellRangeAddress(rowName, rowName, offset, offset + listData.get(i)[0].length - 1));
 
+            // перебор стобцов в блоке
             for (int column = 0; column <= listData.get(i)[0].length - 1; column++) {
 
-                // Vcas
-                if (column == listInternalOffsets.get(2)[0]) {
+                // перебор условий для определения единиц измерений
+                for (int j = 0; j <= listInternalOffsets.get(2).length - 1; j++) {
 
-                    // название
-                    rowHeading = sheet.getRow(rowType);
-                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[0]);
+                    if (column == listInternalOffsets.get(2)[j]) {
 
-                    // единицы измерения
-                    switch (unitVelocity) {
-                        case 0: // м/с
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
-                            break;
-                        case 1: // км/ч
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
-                            break;
-                        case 2: // узлы
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
-                            break;
-                        default:
-                            rowHeading.createCell(offset).setCellValue("Неизвестный тип");
-                            break;
+                        // название (тип) величины
+                        rowHeading = sheet.getRow(rowType);
+                        cellStyle.createCell(dataBook, rowHeading, offset + column, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, velocityType(j));
+
+                        // единицы измерения. больше условий богу условий
+                        rowHeading = sheet.getRow(rowUnit);
+                        cellStyle.createCell(dataBook, rowHeading, offset + column, HorizontalAlignment.CENTER, VerticalAlignment.CENTER, outputUnitVelocity(column, outputUnit));
                     }
-                }
-
-                // M
-                if (column == listInternalOffsets.get(2)[1]) {
-
-                    // название
-                    rowHeading = sheet.getRow(rowType);
-                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[1]);
-
-                    // единицы измерения
-                    rowHeading = sheet.getRow(rowUnit);
-                    rowHeading.createCell(offset + column).setCellValue("-");
-                }
-
-                // Vtas
-                if (column == listInternalOffsets.get(2)[2]) {
-
-                    // название
-                    rowHeading = sheet.getRow(rowType);
-                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[2]);
-
-                    // единицы измерения
-                    switch (unitVelocity) {
-                        case 0: // м/с
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
-                            break;
-                        case 1: // км/ч
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
-                            break;
-                        case 2: // узлы
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
-                            break;
-                        default:
-                            rowHeading.createCell(offset).setCellValue("Неизвестный тип");
-                            break;
-                    }
-                }
-
-                // Veas
-                if (column == listInternalOffsets.get(2)[3]) {
-
-                    // название
-                    rowHeading = sheet.getRow(rowType);
-                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[3]);
-
-                    // единицы измерения
-                    switch (unitVelocity) {
-                        case 0: // м/с
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[0]);
-                            break;
-                        case 1: // км/ч
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[1]);
-                            break;
-                        case 2: // узлы
-                            rowHeading = sheet.getRow(rowUnit);
-                            rowHeading.createCell(offset + column).setCellValue(headingUnitVelocity[2]);
-                            break;
-                        default:
-                            rowHeading.createCell(offset).setCellValue("Неизвестный тип");
-                            break;
-                    }
-                }
-
-                // q
-                if (column == listInternalOffsets.get(2)[4]) {
-
-                    // название
-                    rowHeading = sheet.getRow(rowType);
-                    rowHeading.createCell(offset + column).setCellValue(headingTypeVelocity[4]);
-
-                    // единицы измерения
-                    rowHeading = sheet.getRow(rowUnit);
-                    rowHeading.createCell(offset + column).setCellValue(headingUnitPressure[0]);
                 }
             }
-
-
         }
-
+        // конец метода
     }
+
+    private String outputUnitAltitude (int column, int [] outputUnit) {
+
+        String unit = "";
+        int unitAltitude = outputUnit[0];
+
+        if (column == listInternalOffsets.get(0)[0]) {
+            unit = outputUnitAltitude(unitAltitude);
+        }
+        if (column == listInternalOffsets.get(0)[1]) {
+            unit = "фут";
+        }
+        return unit;
+    }
+
+    private String outputUnitVelocity (int column, int[] outputUnit) {
+
+        String unit = "";
+        int unitVelocity = outputUnit[1];
+        int unitPressure = outputUnit[3];
+
+        if (column == listInternalOffsets.get(2)[4]) {
+            unit = unitPressure(unitPressure);
+        }
+        if (column == listInternalOffsets.get(2)[1]) {
+            unit = "-";
+        }
+        if ((column != listInternalOffsets.get(2)[4]) & (column != listInternalOffsets.get(2)[1])) {
+            unit = unitVelocity(unitVelocity);
+        }
+        return unit;
+    }
+
+    private String outputUnitAtmParam (int column, int[] outputUnit) {
+
+        String unit = "";
+        int unitVelocity = outputUnit[1];
+        int unitDensity = outputUnit[2];
+        int unitPressure = outputUnit[3];
+        int unitTemperature = outputUnit[4];
+
+        if (column == listInternalOffsets.get(1)[0]) {
+            unit = unitDensity(unitDensity);
+        }
+        if (column == listInternalOffsets.get(1)[1]) {
+            unit = unitPressure(unitPressure);
+        }
+        if (column == listInternalOffsets.get(1)[2]) {
+            unit = unitTemperature(unitTemperature);
+        }
+        if (column == listInternalOffsets.get(1)[3]) {
+            unit = unitVelocity(unitVelocity);
+        }
+        return unit;
+    }
+
+    private String unitVelocity(int unitVelocity) {
+
+        switch (unitVelocity) {
+            case 0:
+                return "м/с";
+            case 1:
+                return "км/ч";
+            case 2:
+                return "knot";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String outputUnitAltitude (int unitAltitude) {
+
+        switch (unitAltitude) {
+            case 0:
+                return "м";
+            case 1:
+                return "км";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String unitTemperature (int unitTemperature) {
+
+        switch (unitTemperature) {
+            case 0:
+                return "K";
+            case 1:
+                return "C";
+            case 2:
+                return "F";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String unitPressure(int unitPressure) {
+
+        switch (unitPressure) {
+            case 0:
+                return "Па";
+            case 1:
+                return "кг/м^2";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String unitDensity (int unit) {
+
+        if (unit == 0) {
+            return "кг/м^3";
+        } else {
+            return "Неизвестный тип";
+        }
+    }
+
+    private String velocityName (int name) {
+
+        switch (name) {
+            case 2:
+                return "Vd";
+            case 3:
+                return "Vc";
+            case 4:
+                return "Va";
+            case 5:
+                return "Vs";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String velocityType (int type) {
+
+        switch (type) {
+            case 0:
+                return "Vcas";
+            case 1:
+                return "M";
+            case 2:
+                return "Vtas";
+            case 3:
+                return "Veas";
+            case 4:
+                return "q";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String atmParamType (int type) {
+
+        switch (type) {
+            case 0:
+                return "Плотность";
+            case 1:
+                return "Атм. давл.";
+            case 2:
+                return "Температура";
+            case 3:
+                return "Скорость звука";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+
+
 
 
 }

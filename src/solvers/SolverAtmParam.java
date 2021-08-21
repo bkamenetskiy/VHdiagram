@@ -21,19 +21,19 @@ public class SolverAtmParam {
         for (int row = 0; row <= dataArray.length - 1; row++) {
 
             // установка высоты для которой рассчитываются параметры
-            atmParamCalc.setAltitude(dataAltitude[row][internalOffsetsAltitude[0]]);
+            this.atmParamCalc.setAltitude(dataAltitude[row][internalOffsetsAltitude[0]]);
 
             // расчет плотности
-            dataArray[row][internalOffsetsAtmParam[0]] = atmParamCalc.getDens();
+            dataArray[row][internalOffsetsAtmParam[0]] = this.atmParamCalc.getDens();
 
             // расчет атмосферного давления
-            dataArray[row][internalOffsetsAtmParam[1]] = atmParamCalc.getPressStatic();
+            dataArray[row][internalOffsetsAtmParam[1]] = this.atmParamCalc.getPressStatic();
 
             // расчет атмосферного температуры
-            dataArray[row][internalOffsetsAtmParam[2]] = atmParamCalc.getTemp();
+            dataArray[row][internalOffsetsAtmParam[2]] = this.atmParamCalc.getTemp();
 
             // расчет корости звука
-            dataArray[row][internalOffsetsAtmParam[3]] = atmParamCalc.getSoundVel();
+            dataArray[row][internalOffsetsAtmParam[3]] = this.atmParamCalc.getSoundVel();
         }
     }
 

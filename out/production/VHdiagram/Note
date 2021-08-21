@@ -1,0 +1,26 @@
+
+    private void createCellFormat(int column, float cellValue) {
+
+        // создание ячейки с индексом column
+        this.cellData = rowData.createCell(column);
+        // присвоение ячейки значения cellValue
+        this.cellData.setCellValue(cellValue);
+    }
+
+    private void createFormat(String format, HorizontalAlignment halign, VerticalAlignment valign) {
+
+
+
+        // настройки форматирования ячейки
+        // горизонтальное выравнивание
+        this.cellStyle.setAlignment(halign);
+        //вертикальное выравнивание
+        this.cellStyle.setVerticalAlignment(valign);
+        // настройки разрядности
+        this.cellStyle.setDataFormat(this.cellFormat.getFormat(format));
+
+        // присвоение ячейки форматирования
+        this.cellData.setCellStyle(this.cellStyle);
+
+    }
+
