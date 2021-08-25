@@ -12,10 +12,10 @@ public class ExportData {
     private XSSFRow rowData;
     private SolverUnitOutput unitConvert = new SolverUnitOutput();
     private UnitMatching unitMatching = new UnitMatching();
-    private UnitStyleMatching unitStyleMatching = new UnitStyleMatching();
+    private CellStyleNumber cellStyleNumber = new CellStyleNumber();
     private Cell cell;
 
-    Unit[] unitOutput = new Unit[] {Unit.Kilometer, Unit.Foot, Unit.KilometerPerHr, Unit.KgPerM3, Unit.Pa, Unit.Kelvin, Unit.Dimensionless};
+    Unit[] unitOutput = new Unit[] {Unit.Kilometer, Unit.Foot, Unit.KilometerPerHr, Unit.KgPerM3, Unit.Pa, Unit.Kelvin, Unit.Dimensionless_Mach};
 
     public void exportData(XSSFWorkbook dataBook, XSSFSheet sheet, ArrayList<float[][]> listData, ArrayList<int[]> listInternalOffsets,
                            int globalVerticalOffset, int localVerticalOffset, int outputAltitudeInc, int rowCount, int[] rowEndIndex) {
@@ -29,7 +29,7 @@ public class ExportData {
         CellStyle style;                                                                                                // хранит выбранный стиль ячейки
 
         // создание стилей ячеек
-        unitStyleMatching.createCellStyle(dataBook, unitOutput);
+        cellStyleNumber.createCellStyle(dataBook, unitOutput);
 
         while (rowAltitudeInc <= rowCount) {
 
@@ -40,14 +40,11 @@ public class ExportData {
             for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
 
                 // рассчет смещений блоков
-                if (listDataIndex == 0 ){
+                if (listDataIndex ==0) {
                     offset = 0;
                 }
-                if (listDataIndex == 1 ){
-                    offset = listData.get(0)[0].length;
-                }
-                if (listDataIndex >= 2 ){
-                    offset = listData.get(0)[0].length + listData.get(1)[0].length + listData.get(listDataIndex)[0].length * (listDataIndex - 2);
+                else {
+                    offset = listData.get(listDataIndex - 1)[0].length + offset;
                 }
 
                 // в хранилище перебираем соответствующий массив данных
@@ -65,25 +62,25 @@ public class ExportData {
                     // конвертация и запись в ячейку
                     // возврат единиц измерения из сопоставителя
                     unit = unitMatching.getUnit(listDataIndex, column, listInternalOffsets, unitOutput);
-                    style = unitStyleMatching.getUnitStyle(unit);
+                    style = cellStyleNumber.getUnitStyle(unit);
 
-                    // отрицательные высоты и параметры атмосферы экспортируются
+                    // экспорт. отрицательные высоты и параметры атмосферы экспортируются
                     if (listDataIndex < 2) {
                         //rowData.createCell(column + offset).setCellValue(unitConvert.getUnitOutput(unit, currentValue)); - старая версия
-                        this.cell = rowData.createCell(column + offset);
+                        this.cell = this.rowData.createCell(column + offset);
                         this.cell.setCellValue(unitConvert.getUnitOutput(unit, currentValue));
                         this.cell.setCellStyle(style);
 
                     }
                     // а вот отрицательные скорости - нет.
                     if ((listDataIndex >= 2) & (currentValue >= 0.0f)){
-                        this.cell = rowData.createCell(column + offset);
+                        this.cell = this.rowData.createCell(column + offset);
                         this.cell.setCellValue(unitConvert.getUnitOutput(unit, currentValue));
                         this.cell.setCellStyle(style);
                     }
-                    // вместо отрицательных скоростей создается пустая ячейка
+                    // вместо них создается пустая ячейка
                     if ((listDataIndex >= 2) & (currentValue <= 0.0f)){
-                        rowData.createCell(column + offset).setCellValue("");
+                        this.rowData.createCell(column + offset).setCellValue("");
                     }
 
 
@@ -91,22 +88,9 @@ public class ExportData {
                     // И это только один из нескольких частных случаев, возможных при рассчетах.
                     // Для корректного построения графика необходимо определить последнюю строку, в котрой Ma больше 0.
                     // по этому в rowEndIndex пишутся индексы последних строк каждого из блоков скоростей
-                    if ((currentValue > 0.0f)){
+                    if ((currentValue > 0.0f) & (listDataIndex >= 2)){
 
-                        switch (listDataIndex) {
-                            case 2:
-                                rowEndIndex[0] = rowSheetInc;
-                                break;
-                            case 3:
-                                rowEndIndex[1] = rowSheetInc;
-                                break;
-                            case 4:
-                                rowEndIndex[2] = rowSheetInc;
-                                break;
-                            case 5:
-                                rowEndIndex[3] = rowSheetInc;
-                                break;
-                        }
+                        rowEndIndex[listDataIndex - 2] = rowSheetInc;
                     }
                 }
             }

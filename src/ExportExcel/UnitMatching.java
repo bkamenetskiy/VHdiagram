@@ -79,7 +79,6 @@ class UnitMatching {
                     unit = unitOutput[4];
                 }
                 break;
-
         }
         return unit;
     }

@@ -47,7 +47,7 @@ public class SolverUnitOutput {
                 return value;
 
             // Безразмерные величины
-            case Dimensionless:
+            case Dimensionless_Mach:
                 return value;
 
             default:

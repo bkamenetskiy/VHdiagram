@@ -8,7 +8,7 @@ public enum Unit {
     Kelvin("0.0", "K"), Celsius("0.0", "C"), Fahrenheit("0.0", "F"),                        // температуры
     Pa("0.0", "Па"), KPa("0.0", "кПа"), KgsPerM2("0.0", "кг/м^2"),                          // давления
     KgPerM3("0.0000", "кг/м^3"),                                                                                       // плотности
-    Dimensionless("0.000", "-");                                                                                             // безразмерные величины
+    Dimensionless_Mach("0.000", "-");                                                                                             // безразмерные величины
 
 
     private String format;
@@ -17,6 +17,7 @@ public enum Unit {
     // конструктор
     Unit(String format, String name) {
         this.format = format;
+        this.unitName = name;
     }
 
     // метод. возвращает количество разрядов в ячейке
@@ -28,6 +29,7 @@ public enum Unit {
     public String getUnitName () {
         return this.unitName;
     }
+
 
 
 
