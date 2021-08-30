@@ -1,6 +1,6 @@
 package exportexcel;
 
-import enums.Unit;
+import enums.UnitOutput;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -33,41 +33,41 @@ class CellStyleNumber {
 
     // сопоставление единицы измерения и стиля ячейки
 
-    protected CellStyle getUnitStyle (Unit unit) {
+    protected CellStyle getUnitStyle (UnitOutput unit) {
 
         CellStyle style = null;
 
-        if ((unit == Unit.Meter) || (unit == Unit.Kilometer)) {
+        if ((unit == UnitOutput.Meter) || (unit == UnitOutput.Kilometer)) {
 
             style = this.styleLength;
         }
 
-        if ((unit == Unit.Foot) || (unit == Unit.Inch)) {
+        if ((unit == UnitOutput.Foot) || (unit == UnitOutput.Inch)) {
 
             style = this.styleLength_IS;
         }
 
-        if ((unit == Unit.MeterPerSecond) || (unit == Unit.KilometerPerHr) || (unit == Unit.Knot)) {
+        if ((unit == UnitOutput.MeterPerSecond) || (unit == UnitOutput.KilometerPerHr) || (unit == UnitOutput.Knot)) {
 
             style = this.styleVelocity;
         }
 
-        if ((unit == Unit.Kelvin) || (unit == Unit.Celsius) || (unit == Unit.Fahrenheit)) {
+        if ((unit == UnitOutput.Kelvin) || (unit == UnitOutput.Celsius) || (unit == UnitOutput.Fahrenheit)) {
 
             style = this.styleTemperature;
         }
 
-        if ((unit == Unit.Pa) || (unit == Unit.KPa) || (unit == Unit.KgsPerM2)) {
+        if ((unit == UnitOutput.Pa) || (unit == UnitOutput.KPa) || (unit == UnitOutput.KgsPerM2)) {
 
             style = this.stylePressure;
         }
 
-        if (unit == Unit.KgPerM3) {
+        if (unit == UnitOutput.KgPerM3) {
 
             style = this.styleDensity;
         }
 
-        if (unit == Unit.Dimensionless_Mach) {
+        if (unit == UnitOutput.Dimensionless_Mach) {
 
             style = this.styleDimensionless_Mach;
         }
@@ -76,7 +76,7 @@ class CellStyleNumber {
     }
 
     // создание и настройка стилей
-    protected void createCellStyle(XSSFWorkbook dataBook, Unit[] unitOutput) {
+    protected void createCellStyle(XSSFWorkbook dataBook, UnitOutput[] unitOutput) {
 
         // длины
         this.precisionLength = dataBook.createDataFormat();

@@ -1,13 +1,13 @@
 package solvers;
 
-import models.ModelАtmosphere;
+import models.ModelAtmosphere;
 
 public class SolverAtmParam {
 
-   private ModelАtmosphere atmParamCalc = new ModelАtmosphere();
+   private ModelAtmosphere atmParamCalc = new ModelAtmosphere();
 
    // заполнение блока высот. высота пишется в столбец с индексом, указанным пользователем в переменной index
-   public void getAltitude(float[][] dataArray, int index, float initAltitude) {
+   public void getAltitude(double[][] dataArray, int index, double initAltitude) {
 
         for (int row = 0; row <= dataArray.length - 1; row++) {
             dataArray[row][index] = row + initAltitude;
@@ -16,7 +16,7 @@ public class SolverAtmParam {
 
     // расчет параметров атмосферы в отдельном блоке.
     // dataArray - массив в который пишутся параметры атмосферы; dataAltitude - массив из которого берутся высоты
-    public void getAtmParam(float[][] dataArray, float[][] dataAltitude, int[] internalOffsetsAltitude, int[] internalOffsetsAtmParam) {
+    public void getAtmParam(double[][] dataArray, double[][] dataAltitude, int[] internalOffsetsAltitude, int[] internalOffsetsAtmParam) {
 
         for (int row = 0; row <= dataArray.length - 1; row++) {
 

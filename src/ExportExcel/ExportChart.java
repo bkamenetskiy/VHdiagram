@@ -1,92 +1,154 @@
 package exportexcel;
 
+import enums.UnitOutput;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xddf.usermodel.chart.*;
 import org.apache.poi.xssf.usermodel.XSSFChart;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
-
 import java.util.ArrayList;
 
 public class ExportChart {
 
-
-
-
-    public void Chart (XSSFSheet sheet, ArrayList<int[]> listInternalOffsets, int globalVerticalOffset, int localVerticalOffset, int[] rowEndIndex) {
-
+    public void Chart (XSSFSheet sheet, ArrayList<int[]> listInternalOffsets, int globalVerticalOffset,
+                       int localVerticalOffset, int[] rowEndIndex, ArrayList<double[][]> listData, UnitOutput[] unitOutput) {
 
         // типовые размеры лабуды на которой все рисуется
         // 0 - длина лабуды; 1 - высота лабуды; 2, 3 - dx и dy соответственно - абсолютное смещение лабуды относительно 0 (индекс);
-        int [] size = new int[] {13, 25, 0, 0};
+        // 4 - горизонтальный отступ между графиками (их начальными точками).
+        int [] size = new int[] {13, 25, 0, 0, 14};
 
+        // создание лабуды на которой ресуется график для Маха
+        XSSFDrawing drawingMach = sheet.createDrawingPatriarch();                                                           // создает Patriarch - лабуду на которогй все рисуется
+        XSSFClientAnchor anchorMach = drawingMach.createAnchor(0, 0, 0, 0, size[2], size[3], size[2]+size[0], size[3]+size[1]); // создание прямоугольника по координатам двух точек - верхней левой и правой нижней
+        XSSFChart chartMach = drawingMach.createChart(anchorMach);                                                                  // добавление в лабуду графика
+        // создание лабуды на которой ресуется график для Vtas
+        XSSFDrawing drawingVtas = sheet.createDrawingPatriarch();                                                           // создает Patriarch - лабуду на которогй все рисуется
+        XSSFClientAnchor anchorVtas = drawingVtas.createAnchor(0, 0, 0, 0, size[2] + size[4], size[3], size[2]+size[0] + size[4], size[3]+size[1]); // создание прямоугольника по координатам двух точек - верхней левой и правой нижней
+        XSSFChart chartVtas = drawingVtas.createChart(anchorVtas);                                                                  // добавление в лабуду графика
 
-        // создание лабуды на которой ресуется график
-        XSSFDrawing drawing = sheet.createDrawingPatriarch();                                                           // создает Patriarch - лабуду на которогй все рисуется
-        XSSFClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 0+size[2], 0+size[3], 0+size[2]+size[0], 0+size[3]+size[1]); // создание прямоугольника по координатам двух точек - верхней левой и правой нижней
-        XSSFChart chart = drawing.createChart(anchor);                                                                  // добавление в лабуду графика
+        // создание легенды для Маха
+        XDDFChartLegend legendMach = chartMach.getOrAddLegend();
+        legendMach.setPosition(LegendPosition.RIGHT);
+        // создание легенды для Vtas
+        XDDFChartLegend legendVtas = chartVtas.getOrAddLegend();
+        legendVtas.setPosition(LegendPosition.RIGHT);
 
-        // создание легенды
-        XDDFChartLegend legend = chart.getOrAddLegend();
-        legend.setPosition(LegendPosition.RIGHT);
+        // настройка осей для Маха
+        XDDFCategoryAxis bottomAxisMach = chartMach.createCategoryAxis(AxisPosition.BOTTOM);                            // положение горизонтальной оси
+        bottomAxisMach.setTitle("M");                                                                                   // название горизонтальной оси
+        bottomAxisMach.setCrosses(AxisCrosses.AUTO_ZERO);                                                               // "0" - автоматическое
+        XDDFValueAxis leftAxisMach = chartMach.createValueAxis(AxisPosition.LEFT);                                      // положение вертикальной оси
+        leftAxisMach.setTitle("H, " + unitOutput[0].getUnitName());                                                     // название вертикальной оси
+        leftAxisMach.setCrosses(AxisCrosses.AUTO_ZERO);                                                                 // "0" - автоматическое
+        // настройка осей для Vtas
+        XDDFCategoryAxis bottomAxisVtas = chartVtas.createCategoryAxis(AxisPosition.BOTTOM);                            // положение горизонтальной оси
+        bottomAxisVtas.setTitle("Vtas, " + unitOutput[2].getUnitName());                                                // название горизонтальной оси
+        bottomAxisVtas.setCrosses(AxisCrosses.AUTO_ZERO);                                                               // "0" - автоматическое
+        XDDFValueAxis leftAxisVtas = chartVtas.createValueAxis(AxisPosition.LEFT);                                      // положение вертикальной оси
+        leftAxisVtas.setTitle("H, " + unitOutput[0].getUnitName());                                                     // название вертикальной оси
+        leftAxisVtas.setCrosses(AxisCrosses.AUTO_ZERO);                                                                 // "0" - автоматическое
 
-        // настройка осей
-        XDDFCategoryAxis bottomAxis = chart.createCategoryAxis(AxisPosition.BOTTOM);                                    // положение горизонтальной оси
-        bottomAxis.setTitle("M");                                                                                       // название горизонтальной оси
-        bottomAxis.setCrosses(AxisCrosses.AUTO_ZERO);                                                                   // "0" - автоматическое
-        XDDFValueAxis leftAxis = chart.createValueAxis(AxisPosition.LEFT);                                              // положение вертикальной оси
-        leftAxis.setTitle("H");                                                                                         // название вертикальной оси
-        leftAxis.setCrosses(AxisCrosses.AUTO_ZERO);                                                                     // "0" - автоматическое
+        // максимальное и минимальное значение
+        //leftAxisMach.setMaximum(12.2);
+        //leftAxisMach.setMinimum(-0.3);
 
         // индекс первой строки
         int firstRow = globalVerticalOffset + localVerticalOffset;
+        int offset = 0;
+
+        // вертикальная ось
+        XDDFDataSource <Double>[] dataSourceMach = new XDDFDataSource[listData.size()];
+        XDDFDataSource <Double>[] dataSourceVtas = new XDDFDataSource[listData.size()];
+        // горизонтальная ось
+        XDDFNumericalDataSource <Double>[] numericalDataSourceMach = new XDDFNumericalDataSource[listData.size()];
+        XDDFNumericalDataSource <Double>[] numericalDataSourceVtas = new XDDFNumericalDataSource[listData.size()];
+        // набор данных
+        XDDFLineChartData dataMach = (XDDFLineChartData)chartMach.createData(ChartTypes.LINE, bottomAxisMach, leftAxisMach);
+        XDDFLineChartData dataVtas = (XDDFLineChartData)chartVtas.createData(ChartTypes.LINE, bottomAxisVtas, leftAxisVtas);
+        // линия на графике
+        XDDFLineChartData.Series seriesMach;
+        XDDFLineChartData.Series seriesVtas;
 
         // выбор данных
-        // значения горизонтальной оси
-        XDDFDataSource<Double> Md = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[0], 7, 7));  // выбор столбца по двум точкам: 0, 1 - первая и последняя строка; 2, 3 - первый и последний столбец
-        XDDFDataSource<Double> Mc = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[1], 12, 12));
-        XDDFDataSource<Double> Ma = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[2], 17, 17));
-        XDDFDataSource<Double> Ms = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[3], 22, 22));
-        // значения вертикальной оси
-        XDDFNumericalDataSource<Double> Altitude = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[0], 0, 0));
-        XDDFNumericalDataSource<Double> AltitudeMa = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, rowEndIndex[2], 0, 0));
+        for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
 
-        // настройка подписи данных и выбор типа графика
-        XDDFLineChartData data = (XDDFLineChartData)chart.createData(ChartTypes.LINE, bottomAxis, leftAxis);
+            if (listDataIndex == 0) {
+                offset = 0;
+            }
+            else {
+                offset = listData.get(listDataIndex - 1)[0].length + offset;
+            }
 
-        XDDFLineChartData.Series series1 = (XDDFLineChartData.Series)data.addSeries(Md, Altitude);
-        series1.setTitle("Md", (CellReference)null);
-        series1.setSmooth(true);
-        series1.setMarkerSize((short)6);
-        series1.setMarkerStyle(MarkerStyle.TRIANGLE);
-        XDDFLineChartData.Series series2 = (XDDFLineChartData.Series)data.addSeries(Mc, Altitude);
-        series2.setTitle("Mc", (CellReference)null);
-        series2.setSmooth(true);
-        series2.setMarkerSize((short)6);
-        series2.setMarkerStyle(MarkerStyle.TRIANGLE);
-        XDDFLineChartData.Series series3 = (XDDFLineChartData.Series)data.addSeries(Ma, AltitudeMa);
-        series3.setTitle("Ma", (CellReference)null);
-        series3.setSmooth(true);
-        series3.setMarkerSize((short)6);
-        series3.setMarkerStyle(MarkerStyle.TRIANGLE);
-        XDDFLineChartData.Series series4 = (XDDFLineChartData.Series)data.addSeries(Ms, Altitude);
-        series4.setTitle("Ms", (CellReference)null);
-        series4.setSmooth(true);
-        series4.setMarkerSize((short)6);
-        series4.setMarkerStyle(MarkerStyle.TRIANGLE);
-        chart.plot(data);
+            if (listDataIndex >= 2) {
 
+                // вертикальная ось число Маха
+                dataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
+                        offset + listInternalOffsets.get(2)[1], offset + listInternalOffsets.get(2)[1]));
+                // вертикальная ось Vtas
+                dataSourceVtas[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
+                        offset + listInternalOffsets.get(2)[2], offset + listInternalOffsets.get(2)[2]));
 
+                // горизонтальная ось число Маха
+                numericalDataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
+                        listInternalOffsets.get(0)[0], listInternalOffsets.get(0)[0]));
+                // горизонтальная ось число Vtas
+                numericalDataSourceVtas[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
+                        listInternalOffsets.get(0)[0], listInternalOffsets.get(0)[0]));
 
+                // набор данных для числа Маха
+                seriesMach = (XDDFLineChartData.Series)dataMach.addSeries(dataSourceMach[listDataIndex], numericalDataSourceMach[listDataIndex]);
+                seriesMach.setTitle(getTitleMach(listDataIndex), null);
+                seriesMach.setSmooth(true);
+                seriesMach.setMarkerSize((short)6);
+                seriesMach.setMarkerStyle(MarkerStyle.TRIANGLE);
 
+                // набор данных для Vtas
+                seriesVtas = (XDDFLineChartData.Series)dataVtas.addSeries(dataSourceVtas[listDataIndex], numericalDataSourceVtas[listDataIndex]);
+                seriesVtas.setTitle(getTitleVtas(listDataIndex), null);
+                seriesVtas.setSmooth(true);
+                seriesVtas.setMarkerSize((short)6);
+                seriesVtas.setMarkerStyle(MarkerStyle.TRIANGLE);
+            }
+        }
 
-
-
+        chartMach.plot(dataMach);
+        chartVtas.plot(dataVtas);
 
     }
 
+    private String getTitleMach(int name) {
+
+        switch (name) {
+            case 2:
+                return "Md";
+            case 3:
+                return "Mc";
+            case 4:
+                return "Ma";
+            case 5:
+                return "Ms";
+            default:
+                return "Неизвестный тип";
+        }
+    }
+
+    private String getTitleVtas(int name) {
+
+        switch (name) {
+            case 2:
+                return "Vd";
+            case 3:
+                return "Vc";
+            case 4:
+                return "Va";
+            case 5:
+                return "Vs";
+            default:
+                return "Неизвестный тип";
+        }
+    }
 
 
 

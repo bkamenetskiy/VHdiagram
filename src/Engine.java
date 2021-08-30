@@ -1,11 +1,13 @@
+import enums.UnitInput;
+import enums.UnitOutput;
 import exportexcel.ExportChart;
 import exportexcel.ExportData;
 import exportexcel.ExportHeading;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import solvers.SolverAtmParam;
+import solvers.SolverUnitInput;
 import solvers.SolverVelocity;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,43 +15,53 @@ import java.util.ArrayList;
 public class Engine {
 
     // конструктор
-    public Engine (int[] settingLimitType, ArrayList <int[]> listInternalOffsets, float[] inputAltitude, int[] outputUnit)
+    public Engine (int[] settingLimitType, ArrayList <int[]> listInternalOffsets, double[] inputAltitude, double[] inputVelocity,
+                   UnitOutput[] unitOutput, UnitInput[] unitInput)
 
     {
         this.settingLimitType = settingLimitType;
         this.listInternalOffsets = listInternalOffsets;
         this.inputAltitude = inputAltitude;
-        this.outputUnit = outputUnit;
+        this.unitOutput = unitOutput;
+        this.unitInput = unitInput;
+        this.inputVelocity = inputVelocity;
     }
 
     // сокровищница
-    private int[] settingLimitType;                                                                             // хранилище общих настроек
-    private ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
-    private ArrayList <float[][]> listData = new ArrayList <>();                                                        // хранилище данных
-    private float[] inputAltitude;
-    private int[] outputUnit;
-
-    // решатели
-    private SolverVelocity solverVelocity = new SolverVelocity();
-    private SolverAtmParam solverAtmParam = new SolverAtmParam();
+    private final int[] settingLimitType;                                                                                     // хранилище общих настроек
+    private final ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
+    private final ArrayList<double[][]> listData = new ArrayList<double[][]>();                                                        // хранилище данных
+    private final double[] inputAltitude;
+    private final UnitOutput[] unitOutput;
+    private final UnitInput[] unitInput;
+    private final double[] inputVelocity;
 
     // вспомогательные переменные
     private int rowCount;                                                                                               // размерность массива
     private int[] rowEndIndex = new int[] {0, 0, 0, 0};                                                                 // счетчик индексов строк, на которых остановился экспорт скорости
 
-    // расчет скоростей
-    public void dataArray (float[] inputVelocity, float[] inputMaxM) throws IOException {
+    // исходные данные после конвертации
+    private double[] inputVelocityConvert;
+    private double[] inputAltitudeConvert;
 
-        this.rowCount = (int) Math.ceil ((Math.abs(inputAltitude[0]) + Math.abs(inputAltitude[1])) / 1.0f);
+    // расчет скоростей
+    public void dataArray (double[] inputMaxM) {
+
+        // все что нужно для рассчетов
+        SolverVelocity solverVelocity = new SolverVelocity();                                                           // решатели
+        SolverAtmParam solverAtmParam = new SolverAtmParam();
+
+        // вспомогательные переменные
+        this.rowCount = (int) Math.ceil ((Math.abs(inputAltitude[0]) + Math.abs(inputAltitude[1])) / 1.0);             // размерность массива
 
         // создание массивов
-        float[][] blank = new float[0][0];                                                                              // заглушка
-        float[][] dataAltitude = new float[rowCount + 1][2];                                                            // массив для хранения высот
-        float[][] dataAtmParam = new float[rowCount + 1][4];                                                            // массив для хранения параметров атмосферы
-        float[][] dataVelocityVd = new float[rowCount + 1][5];                                                          // массив для скорости Vd
-        float[][] dataVelocityVc = new float[rowCount + 1][5];                                                          // массив для скорости Vc
-        float[][] dataVelocityVa = new float[rowCount + 1][5];                                                          // массив для скорости Va
-        float[][] dataVelocityVs = new float[rowCount + 1][5];                                                          // массив для скорости Vs
+        double[][] blank = new double[0][0];                                                                              // заглушка
+        double[][] dataAltitude = new double[rowCount + 1][2];                                                            // массив для хранения высот
+        double[][] dataAtmParam = new double[rowCount + 1][4];                                                            // массив для хранения параметров атмосферы
+        double[][] dataVelocityVd = new double[rowCount + 1][5];                                                          // массив для скорости Vd
+        double[][] dataVelocityVc = new double[rowCount + 1][5];                                                          // массив для скорости Vc
+        double[][] dataVelocityVa = new double[rowCount + 1][5];                                                          // массив для скорости Va
+        double[][] dataVelocityVs = new double[rowCount + 1][5];                                                          // массив для скорости Vs
 
         // скинули в хранилище
         this.listData.add(dataAltitude);
@@ -59,18 +71,21 @@ public class Engine {
         this.listData.add(dataVelocityVa);
         this.listData.add(dataVelocityVs);
 
+        // сконвертировали исходные данные в СИ
+        getInputUnitConvert();
+
         // записали высоты
-        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0], this.inputAltitude[0]);
+        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0], this.inputAltitudeConvert[0]);
         // записали атмосферу
         solverAtmParam.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
         // записали скорость Vd
-        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, inputVelocity[0], inputMaxM[0], this.settingLimitType[0], blank);
+        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[0], inputMaxM[0], this.settingLimitType[0], blank);
         // записали скорость Vc
-        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, inputVelocity[1], inputMaxM[1], this.settingLimitType[1], blank);
+        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[1], inputMaxM[1], this.settingLimitType[1], blank);
         // записали скорость Va
-        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, inputVelocity[2], inputMaxM[1], this.settingLimitType[2], dataVelocityVc);
+        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[2], inputMaxM[1], this.settingLimitType[2], dataVelocityVc);
         // записали скорость Vs
-        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, inputVelocity[3], -1.0f, this.settingLimitType[3], blank);
+        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[3], -1.0f, this.settingLimitType[3], blank);
 
         /*
         // выводим в консоль
@@ -86,44 +101,65 @@ public class Engine {
 
 
     // экспорт в excel
-    void dataOutput () throws IOException {
+    public void exportExcel() throws IOException {
 
-        // глобальное смещение всей таблицы, включая заголовок, по вертикали
-        int globalVerticalOffset = 0;
+        // все что нужно для экспорта в эксель
+        XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
+        XSSFSheet sheet = dataBook.createSheet("V-H");                                                         // создание листа с названием V-H
 
-        // смещение таблицы с данными
-        int localVerticalOffset = 3;
-
-        // создание книги
-        XSSFWorkbook dataBook = new XSSFWorkbook();
-        // создание листа
-        XSSFSheet sheet = dataBook.createSheet("Result");
+        // вспомогательные переменные
+        int localVerticalOffset = 3;                                                                                    // смещение таблицы с данными относительно заголовка
+        int globalVerticalOffset = 25;                                                                                  // глобальное смещение всей таблицы, включая заголовок, по вертикали
 
         // экспорт заголовка
         ExportHeading heading = new ExportHeading();
-        heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, this.outputUnit, globalVerticalOffset);
+        heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, this.unitOutput);
 
         // экспорт данных
         ExportData data = new ExportData();
-        data.exportData(dataBook, sheet, this.listData, this.listInternalOffsets,
-                                    globalVerticalOffset, localVerticalOffset, (int) this.inputAltitude[2], this.rowCount, this.rowEndIndex);
+        data.exportData(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, localVerticalOffset,
+                (int) this.inputAltitude[2], this.rowCount, this.rowEndIndex, this.unitOutput);
 
         // отрисовка графиков
         ExportChart chart = new ExportChart();
-        //chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex);
+        chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex, this.listData, this.unitOutput);
 
         // запись файла
         writeFile(dataBook);
         System.out.println("Your excel file has been generated!");
-
     }
 
     // запись файла на диск
     private void writeFile (XSSFWorkbook file) throws IOException {
+
         FileOutputStream out = new FileOutputStream("d:\\Data.xlsx");
         file.write(out);
         out.close();
         file.close();
+    }
+
+    // конвертация исходных данных в СИ
+    private void getInputUnitConvert() {
+
+        // вспомогательные переменные
+        SolverUnitInput inputUnitConvert = new SolverUnitInput();
+        double[] altitude = new double[this.inputAltitude.length];
+        double[] velocity = new double[this.inputVelocity.length];
+
+        // скорости
+        for (int i = 0; i <= velocity.length - 1; i++) {
+
+            velocity[i] = inputUnitConvert.getUnitInput(this.unitInput[1], this.inputVelocity[i]);
+        }
+
+        // высоты
+        for (int i = 0; i <= altitude.length - 1; i++) {
+
+            altitude[i] = inputUnitConvert.getUnitInput(this.unitInput[0], this.inputAltitude[i]);
+        }
+
+        this.inputAltitudeConvert = altitude;
+        this.inputVelocityConvert = velocity;
     }
 
 

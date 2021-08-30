@@ -1,6 +1,6 @@
 package exportexcel;
 
-import enums.Unit;
+import enums.UnitOutput;
 
 import java.util.ArrayList;
 
@@ -8,9 +8,9 @@ class UnitMatching {
 
     // сопоставление стобца данных и его единиц измерения
 
-    protected Unit getUnit(int listDataIndex, int column, ArrayList<int[]> listInternalOffsets, Unit[] unitOutput) {
+    protected UnitOutput getUnit(int listDataIndex, int column, ArrayList<int[]> listInternalOffsets, UnitOutput[] unitOutput) {
 
-        Unit unit = null;
+        UnitOutput unit = null;
 
         switch (listDataIndex) {
 

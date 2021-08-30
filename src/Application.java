@@ -1,47 +1,53 @@
-import enums.Unit;
+import enums.UnitInput;
+import enums.UnitOutput;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 
 class Application {
 
-    public static void main(String[] args) throws IOException, ParseException {
-
-
+    public static void main(String[] args) throws IOException {
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
-        float[] inputVelocity = new float[] {622.0f * 1000.0f / 60.0f / 60.0f,
-                                              570.0f * 1000.0f / 60.0f / 60.0f,
-                                              487.0f * 1000.0f / 60.0f / 60.0f,
-                                              201.0f * 1000.0f / 60.0f / 60.0f}; // 172.777 158.333 135.2777 55.8333
+        double[] inputVelocity = new double[] {622.0f, 570.0f, 487.0f, 201.0f}; // 172.777 158.333 135.2777 55.8333
 
         // законодательное ограничение скоростей Vd и Vc по числу М: 0 - max Md; 1 - max Mc
-        float[] inputMaxM = new float[] {0.88f, 0.82f};
+        double[] inputMaxM = new double[] {0.88f, 0.82f};
 
         // диапазоны высот и приращение
-        float[] inputAltitude = new float[] {-300.0f, 12200.0f, 1.0f};
+        double[] inputAltitude = new double[] {-300.0f, 12200.0f, 1.0f};
 
-        // единицы измерения вывода
-        // 0. Единицы измерения высоты:
+        // единицы измерения ввода
+        // 0. Единицы измерения высоты метрические:
         // 0 - метры;
         // 1 - километры.
         // 1. Единицы измерения скорости:
         // 0 - м/с;
         // 1 - км/ч;
         // 2 - knot.
-        // 2. Единицы измерения плотности:
+        UnitInput[] unitInput = new UnitInput[] {UnitInput.Meter, UnitInput.KilometerPerHr};
+
+        // единицы измерения вывода
+        // 0. Единицы измерения высоты метрические:
+        // 0 - метры;
+        // 1 - километры.
+        // 0. Единицы измерения высоты имперские:
+        // 0 - футы.
+        // 2. Единицы измерения скорости:
+        // 0 - м/с;
+        // 1 - км/ч;
+        // 2 - knot.
+        // 3. Единицы измерения плотности:
         // 0 - кг/м3.
-        // 3. Единицы измерения давления:
+        // 4. Единицы измерения давления:
         // 0 - Па;
         // 1 - кг/м2.
-        // 4. Единицы измерения температуры:
+        // 5. Единицы измерения температуры:
         // 0 - K;
         // 1 - C;
         // 2 - F.
-        int[] outputUnit = new int[] {1, 1, 0, 0, 2};
-
-
+        UnitOutput[] unitOutput = new UnitOutput[] {UnitOutput.Kilometer, UnitOutput.Foot, UnitOutput.KilometerPerHr, UnitOutput.KgPerM3,
+                UnitOutput.Pa, UnitOutput.Kelvin, UnitOutput.Dimensionless_Mach};
 
         // ограничения для скоростей в следующем порядке: Vd, Vc, Va, Vs
         // типы ограничений: 1 - ограничение сверху по значению маха; 2 - ограничение сверху махом другой скорости; 0 - ограничения отсутствуют
@@ -72,11 +78,11 @@ class Application {
         listInternalOffsets.add(internalOffsetsVelocity);
 
 
-        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude, outputUnit);
+        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude, inputVelocity, unitOutput, unitInput);
 
         // экспортируем второй вариант
-        engine.dataArray(inputVelocity, inputMaxM);
-        engine.dataOutput();
+        engine.dataArray(inputMaxM);
+        engine.exportExcel();
 
 
 
