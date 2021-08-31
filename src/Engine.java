@@ -101,7 +101,7 @@ public class Engine {
 
 
     // экспорт в excel
-    public void exportExcel() throws IOException {
+    public void exportExcel(String path) throws IOException {
 
         // все что нужно для экспорта в эксель
         XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
@@ -125,14 +125,14 @@ public class Engine {
         chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex, this.listData, this.unitOutput);
 
         // запись файла
-        writeFile(dataBook);
+        writeFile(dataBook, path);
         System.out.println("Your excel file has been generated!");
     }
 
     // запись файла на диск
-    private void writeFile (XSSFWorkbook file) throws IOException {
+    private void writeFile (XSSFWorkbook file, String path) throws IOException {
 
-        FileOutputStream out = new FileOutputStream("d:\\Data.xlsx");
+        FileOutputStream out = new FileOutputStream(path);
         file.write(out);
         out.close();
         file.close();
