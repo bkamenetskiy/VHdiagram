@@ -73,7 +73,7 @@ public class BackEnd {
         int[] internalOffsetsVelocity = new int[] {0, 1, 2, 3, 4};
 
         // путь к файлу результатов
-        String path = "d:\\Data.xlsx";
+        String path = "d:\\result.xlsx";
 
 
 
@@ -87,7 +87,8 @@ public class BackEnd {
 
         // экспортируем второй вариант
         engine.dataArray(inputMaxM);
-        engine.exportExcel(path);
+        engine.exportExcel();
+        engine.writeFile(path);
     }
 
 }

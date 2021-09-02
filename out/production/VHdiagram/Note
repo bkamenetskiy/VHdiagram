@@ -25,5 +25,15 @@
     }
 
 
+    overview
+    <AnchorPane prefHeight="400.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" fx:controller="InputOverviewController">
+    layout
+    <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" />
+
+
+
 комбобоксы
 http://velvet.tealeaf.su/javafx.html
+
+сохранение файлов
+https://www.genuinecoder.com/save-files-javafx-filechooser/

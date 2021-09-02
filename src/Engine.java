@@ -39,6 +39,7 @@ public class Engine {
     // вспомогательные переменные
     private int rowCount;                                                                                               // размерность массива
     private int[] rowEndIndex = new int[] {0, 0, 0, 0};                                                                 // счетчик индексов строк, на которых остановился экспорт скорости
+    private XSSFWorkbook dataBook;                                                                                      // для перекидывания книги между методами
 
     // исходные данные после конвертации
     private double[] inputVelocityConvert;
@@ -101,7 +102,7 @@ public class Engine {
 
 
     // экспорт в excel
-    public void exportExcel(String path) throws IOException {
+    public void exportExcel() throws IOException {
 
         // все что нужно для экспорта в эксель
         XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
@@ -124,19 +125,26 @@ public class Engine {
         ExportChart chart = new ExportChart();
         chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex, this.listData, this.unitOutput);
 
-        // запись файла
-        writeFile(dataBook, path);
-        System.out.println("Your excel file has been generated!");
+        this.dataBook = dataBook;
+
     }
 
     // запись файла на диск
-    private void writeFile (XSSFWorkbook file, String path) throws IOException {
+    public void writeFile (String path) {
 
-        FileOutputStream out = new FileOutputStream(path);
-        file.write(out);
-        out.close();
-        file.close();
-    }
+        XSSFWorkbook file = this.dataBook;
+
+        try {
+            FileOutputStream out = new FileOutputStream(path);
+            file.write(out);
+            out.close();
+            file.close();
+            System.out.println("Your excel file has been generated!");
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+
+      }
 
     // конвертация исходных данных в СИ
     private void getInputUnitConvert() {
