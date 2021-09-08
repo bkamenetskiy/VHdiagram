@@ -37,9 +37,10 @@ public class MainApp extends Application {
 
             // Отображаем сцену, содержащую корневой макет.
             Scene scene = new Scene(rootLayout);
-            primaryStage.setScene(scene);
-            primaryStage.show();
-        } catch (IOException e) {
+            this.primaryStage.setScene(scene);
+            this.primaryStage.show();
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -52,8 +53,9 @@ public class MainApp extends Application {
             AnchorPane inputOverview = (AnchorPane) loader.load();
 
             // Помещаем в центр корневого макета.
-            rootLayout.setCenter(inputOverview);
-        } catch (IOException e) {
+            this.rootLayout.setCenter(inputOverview);
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

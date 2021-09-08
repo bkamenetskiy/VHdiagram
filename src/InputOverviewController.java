@@ -1,25 +1,21 @@
-import com.microsoft.schemas.vml.ImageDocument;
 import enums.UnitInput;
 import enums.UnitOutput;
-import javafx.application.Application;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javafx.fxml.FXML;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
-import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 
-
 public class InputOverviewController {
 
-    UnitInput[] unitInput = new UnitInput[2];
-    UnitOutput[] unitOutput = new UnitOutput[7];
-    String path;
+    private UnitInput[] unitInput = new UnitInput[2];
+    private UnitOutput[] unitOutput = new UnitOutput[7];
+    private String path;
+    private double[] inputMaxM = new double[2];
+    private double[] inputVelocity = new double[4];
+    private double[] inputAltitude = new double[3];
+    private BackEnd back;
 
     @FXML
     private ComboBox<String> comboBox1;
@@ -36,11 +32,27 @@ public class InputOverviewController {
     @FXML
     private Button button1;
     @FXML
-    private TextField textField8;
+    private TextField textField1;   // Vd
+    @FXML
+    private TextField textField2;   // Vc
+    @FXML
+    private TextField textField3;   // Va
+    @FXML
+    private TextField textField4;   // Vs
+    @FXML
+    private TextField textField5;   // max Md
+    @FXML
+    private TextField textField6;   // max Mc
+    @FXML
+    private TextField textField7;   // H min
+    @FXML
+    private TextField textField8;   // H max
+    @FXML
+    private TextField textField9;   // dH
 
 
     @FXML
-    private void initialize() {
+    protected void initialize() {
 
         // высота
         this.comboBox1.getItems().setAll(
@@ -80,6 +92,7 @@ public class InputOverviewController {
                 "F"
         );
 
+        // значения комбобоксов по умолчанию
         this.comboBox1.getSelectionModel().select(0);   // значение по умолчанию - м
         this.comboBox2.getSelectionModel().select(0);   // значение по умолчанию - м/с
 
@@ -88,6 +101,7 @@ public class InputOverviewController {
         this.comboBox5.getSelectionModel().select(0);   // значение по умолчанию - Па
         this.comboBox6.getSelectionModel().select(0);   // значение по уполчанию - К
 
+        // значения единиц измерения по умолчанию
         this.unitInput[0] = UnitInput.Meter;                                                                                 // высота
         this.unitInput[1] = UnitInput.MeterPerSecond;                                                                        // скорость
 
@@ -99,15 +113,22 @@ public class InputOverviewController {
         this.unitOutput[5] = UnitOutput.Kelvin;                                                                              // температура
         this.unitOutput[6] = UnitOutput.Dimensionless_Mach;                                                                  // безразмерный мах
 
+        // значения скоростей и высот
+        this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+        this.inputVelocity[1] = Double.parseDouble(textField2.getText());
+        this.inputVelocity[2] = Double.parseDouble(textField3.getText());
+        this.inputVelocity[3] = Double.parseDouble(textField4.getText());
+        this.inputMaxM[0] = Double.parseDouble(textField5.getText());
+        this.inputMaxM[1] = Double.parseDouble(textField6.getText());
+        this.inputAltitude[0] = Double.parseDouble(textField7.getText());
+        this.inputAltitude[1] = Double.parseDouble(textField8.getText());
+        this.inputAltitude[2] = Double.parseDouble(textField9.getText());
 
-        this.path = "d:\\Result.xlsx";
-
-        //System.out.println(this.path);
-        System.out.println(unitInput[0] + "  " + unitInput[1]);
-        System.out.println(unitOutput[0] + "  " + unitOutput[1] + "   " + unitOutput[2]+ "   " + unitOutput[3]+ "   " + unitOutput[4]+ "   " + unitOutput[5]+ "   " + unitOutput[6]);
+        this.path = "c:\\Result.xlsx";
 
     }
 
+    // изменение позиций в комбобоксах
     public void onComboBoxChanged() {
 
         // единицы измерения исходных данных
@@ -201,15 +222,67 @@ public class InputOverviewController {
                 this.unitOutput[5] = UnitOutput.Kelvin;
                 break;
         }
+    }
+
+    public void onTextField1Changed() {
+
+        this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+
+        //DecimalFormat format = new DecimalFormat("#.#######;-#.#######");
+        //Alert alert = new Alert(Alert.AlertType.ERROR, "Ввод недопустимого символа", ButtonType.OK);
+        //alert.showAndWait();
 
     }
 
-    @FXML
+    public void onTextField2Changed() {
+
+        this.inputVelocity[1] = Double.parseDouble(textField2.getText());
+
+    }
+
+    public void onTextField3Changed() {
+
+        this.inputVelocity[2] = Double.parseDouble(textField3.getText());
+
+    }
+
+    public void onTextField4Changed() {
+
+        this.inputVelocity[3] = Double.parseDouble(textField4.getText());
+
+    }
+
+    public void onTextField5Changed() {
+
+        this.inputMaxM[0] = Double.parseDouble(textField5.getText());
+
+    }
+
+    public void onTextField6Changed() {
+
+        this.inputMaxM[1] = Double.parseDouble(textField6.getText());
+
+    }
+
+    public void onTextField7Changed() {
+
+        this.inputAltitude[0] = Double.parseDouble(textField7.getText());
+
+    }
+
     public void onTextField8Changed() {
 
-        String aaa = "";
-        aaa = textField8.getText();
-        System.out.println(aaa);
+        this.inputAltitude[1] = Double.parseDouble(textField8.getText());
+
+    }
+
+    public void onTextField9Changed() {
+
+        this.inputAltitude[2] = Double.parseDouble(textField9.getText());
+
+    }
+
+    public void onButtonClick() throws IOException {
 
         Stage stage = new Stage();
         FileChooser fileChooser = new FileChooser();
@@ -220,16 +293,32 @@ public class InputOverviewController {
         File file = fileChooser.showSaveDialog(stage);
         this.path = file.getAbsolutePath();
 
-        System.out.println(path);
-    }
 
-
-
-    public void onButtonClick() throws IOException {
-
+            this.back = new BackEnd(this.inputVelocity, this.inputMaxM, this.inputAltitude, this.unitInput, this.unitOutput, this.path);
+            back.back();
 
 
     }
+
+
+
+
+
+
+
+
+
+
+    private boolean isValid(char ch) {
+        return (ch >= '0' && ch <= '9') || (ch == '-') || (ch == '.');
+    }
+
+
+    private boolean validate(String text)
+    {
+        return text.matches("[0-9]");
+    }
+
 
 
 

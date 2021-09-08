@@ -6,16 +6,34 @@ import java.util.ArrayList;
 
 public class BackEnd {
 
-    public static void main(String[] args) throws IOException {
+    public BackEnd (double[] inputVelocity, double[] inputMaxM, double[] inputAltitude, UnitInput[] unitInput, UnitOutput[] unitOutput,
+                    String path)
+    {
+        this.inputVelocity = inputVelocity;
+        this.inputMaxM = inputMaxM;
+        this.inputAltitude = inputAltitude;
+        this.unitInput = unitInput;
+        this.unitOutput = unitOutput;
+        this.path = path;
+    }
+
+    private double[] inputVelocity;
+    private double[] inputMaxM;
+    private double[] inputAltitude;
+    private UnitInput[] unitInput;
+    private UnitOutput[] unitOutput;
+    private String path;
+
+    protected void back() throws IOException {
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
-        double[] inputVelocity = new double[] {622.0f, 570.0f, 487.0f, 201.0f}; // 172.777 158.333 135.2777 55.8333
+        double[] inputVelocity = new double[] {622.0, 570.0, 487.0, 201.0}; // 172.777 158.333 135.2777 55.8333
 
         // законодательное ограничение скоростей Vd и Vc по числу М: 0 - max Md; 1 - max Mc
-        double[] inputMaxM = new double[] {0.88f, 0.82f};
+        double[] inputMaxM = new double[] {0.88, 0.82};
 
         // диапазоны высот и приращение
-        double[] inputAltitude = new double[] {-300.0f, 12200.0f, 1.0f};
+        double[] inputAltitude = new double[] {-300.0, 12200.0, 1.0};
 
         // единицы измерения ввода
         // 0. Единицы измерения высоты метрические:
@@ -83,12 +101,12 @@ public class BackEnd {
         listInternalOffsets.add(internalOffsetsVelocity);
 
 
-        Engine engine = new Engine(settingLimitType, listInternalOffsets, inputAltitude, inputVelocity, unitOutput, unitInput);
+        Engine engine = new Engine(settingLimitType, listInternalOffsets, this.inputAltitude, this.inputVelocity, this.unitOutput, this.unitInput);
 
         // экспортируем второй вариант
-        engine.dataArray(inputMaxM);
+        engine.dataArray(this.inputMaxM);
         engine.exportExcel();
-        engine.writeFile(path);
+        engine.writeFile(this.path);
     }
 
 }

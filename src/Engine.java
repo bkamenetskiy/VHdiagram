@@ -102,7 +102,7 @@ public class Engine {
 
 
     // экспорт в excel
-    public void exportExcel() throws IOException {
+    public void exportExcel() {
 
         // все что нужно для экспорта в эксель
         XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
@@ -110,7 +110,7 @@ public class Engine {
 
         // вспомогательные переменные
         int localVerticalOffset = 3;                                                                                    // смещение таблицы с данными относительно заголовка
-        int globalVerticalOffset = 25;                                                                                  // глобальное смещение всей таблицы, включая заголовок, по вертикали
+        int globalVerticalOffset = 26;                                                                                  // глобальное смещение всей таблицы, включая заголовок, по вертикали
 
         // экспорт заголовка
         ExportHeading heading = new ExportHeading();
