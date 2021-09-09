@@ -1,10 +1,10 @@
 package exportexcel;
 
 import enums.UnitOutput;
+import org.apache.commons.math3.util.Precision;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import solvers.SolverUnitOutput;
-
 import java.util.ArrayList;
 
 public class ExportData {
@@ -16,13 +16,13 @@ public class ExportData {
         Cell cell;                                                                                                      // ячейка
         CellStyleNumber cellStyleNumber = new CellStyleNumber();                                                        // стиль ячейки
         UnitMatching unitMatching = new UnitMatching();                                                                 // сопоставитель номера столбца и единицы измерения
-        SolverUnitOutput outputUnitConvert = new SolverUnitOutput();                                                          // конвертер единиц измерения
+        SolverUnitOutput outputUnitConvert = new SolverUnitOutput();                                                    // конвертер единиц измерения
 
         // вспомогательные переменные
         int rowAltitudeInc = 0;                                                                                         // счетчик строк в массивах данных
         int rowSheetInc = 0;                                                                                            // счетчик строк в листе excel
         int offset = 0;                                                                                                 // смещение блоков относительно друг друга
-        double currentValue;                                                                                             // вспомогательная переменная для конвертации единиц измерения
+        double currentValue;                                                                                            // вспомогательная переменная для конвертации единиц измерения
         UnitOutput unit;                                                                                                // хранит тип единицы измерения
         CellStyle style;                                                                                                // хранит стиль ячейки
 
@@ -32,7 +32,7 @@ public class ExportData {
         while (rowAltitudeInc <= rowCount) {
 
             // создание строки
-            rowData = sheet.createRow(rowSheetInc + localVerticalOffset + globalVerticalOffset);
+            rowData = sheet.createRow((short) rowSheetInc + localVerticalOffset + globalVerticalOffset);
 
             // перебираем хранилище данных
             for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
@@ -66,22 +66,25 @@ public class ExportData {
 
                     // экспорт. отрицательные высоты и параметры атмосферы экспортируются
                     if (listDataIndex < 2) {
+
                         //rowData.createCell(column + offset).setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue)); - старая версия
-                        cell = rowData.createCell(column + offset);
-                        cell.setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue));
-                        cell.setCellStyle(style);
+                        cell = rowData.createCell((short) column + offset);
+                        cell.setCellValue(Precision.round(outputUnitConvert.getUnitOutput(unit, currentValue), unit.getUnitPrecision()));  // присвоение ячейке округленного значения
+                        cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
                     }
+
+
                     // а вот отрицательные скорости - нет.
                     if ((listDataIndex >= 2) & (currentValue >= 0.0)){
 
-                        cell = rowData.createCell(column + offset);
-                        cell.setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue));
+                        cell = rowData.createCell((short) column + offset);
+                        cell.setCellValue(Precision.round(outputUnitConvert.getUnitOutput(unit, currentValue), unit.getUnitPrecision()));
                         cell.setCellStyle(style);
                     }
                     // вместо них создается пустая ячейка
                     if ((listDataIndex >= 2) & (currentValue <= 0.0)){
 
-                        rowData.createCell(column + offset).setCellValue("");
+                        rowData.createCell((short) column + offset).setCellValue("");
                     }
 
                     // Ma граничен сверху Mc, при этом, если Ma превышает предельное значение, он обращается в -1.

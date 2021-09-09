@@ -28,9 +28,9 @@ public class Engine {
     }
 
     // сокровищница
-    private final int[] settingLimitType;                                                                                     // хранилище общих настроек
-    private final ArrayList <int[]> listInternalOffsets;                                                                      // ранилище внутренних смещений
-    private final ArrayList<double[][]> listData = new ArrayList<double[][]>();                                                        // хранилище данных
+    private final int[] settingLimitType;                                                                               // хранилище общих настроек
+    private final ArrayList <int[]> listInternalOffsets;                                                                // ранилище внутренних смещений
+    private final ArrayList <double[][]> listData = new ArrayList();                                                    // хранилище данных
     private final double[] inputAltitude;
     private final UnitOutput[] unitOutput;
     private final UnitInput[] unitInput;
@@ -46,7 +46,7 @@ public class Engine {
     private double[] inputAltitudeConvert;
 
     // расчет скоростей
-    public void dataArray (double[] inputMaxM) {
+    protected void dataArray (double[] inputMaxM) {
 
         // все что нужно для рассчетов
         SolverVelocity solverVelocity = new SolverVelocity();                                                           // решатели
@@ -102,7 +102,7 @@ public class Engine {
 
 
     // экспорт в excel
-    public void exportExcel() {
+    protected void exportExcel() {
 
         // все что нужно для экспорта в эксель
         XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
@@ -130,7 +130,7 @@ public class Engine {
     }
 
     // запись файла на диск
-    public void writeFile (String path) {
+    protected void writeFile (String path) {
 
         XSSFWorkbook file = this.dataBook;
 

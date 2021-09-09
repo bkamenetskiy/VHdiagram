@@ -9,13 +9,12 @@ import java.io.IOException;
 
 public class InputOverviewController {
 
-    private UnitInput[] unitInput = new UnitInput[2];
-    private UnitOutput[] unitOutput = new UnitOutput[7];
+    private final UnitInput[] unitInput = new UnitInput[2];
+    private final UnitOutput[] unitOutput = new UnitOutput[7];
     private String path;
-    private double[] inputMaxM = new double[2];
-    private double[] inputVelocity = new double[4];
-    private double[] inputAltitude = new double[3];
-    private BackEnd back;
+    private final double[] inputMaxM = new double[2];
+    private final double[] inputVelocity = new double[4];
+    private final double[] inputAltitude = new double[3];
 
     @FXML
     private ComboBox<String> comboBox1;
@@ -228,10 +227,8 @@ public class InputOverviewController {
 
         this.inputVelocity[0] = Double.parseDouble(textField1.getText());
 
-        //DecimalFormat format = new DecimalFormat("#.#######;-#.#######");
         //Alert alert = new Alert(Alert.AlertType.ERROR, "Ввод недопустимого символа", ButtonType.OK);
         //alert.showAndWait();
-
     }
 
     public void onTextField2Changed() {
@@ -293,21 +290,11 @@ public class InputOverviewController {
         File file = fileChooser.showSaveDialog(stage);
         this.path = file.getAbsolutePath();
 
-
-            this.back = new BackEnd(this.inputVelocity, this.inputMaxM, this.inputAltitude, this.unitInput, this.unitOutput, this.path);
-            back.back();
+        BackEnd back = new BackEnd(this.inputVelocity, this.inputMaxM, this.inputAltitude, this.unitInput, this.unitOutput, this.path);
+        back.back();
 
 
     }
-
-
-
-
-
-
-
-
-
 
     private boolean isValid(char ch) {
         return (ch >= '0' && ch <= '9') || (ch == '-') || (ch == '.');
