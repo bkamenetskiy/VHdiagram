@@ -25,7 +25,6 @@ class CellStyleNumber {
     private CellStyle styleDimensionless_Mach;          // безразмерные
 
     // сопоставление единицы измерения и стиля ячейки
-
     protected CellStyle getUnitStyle (UnitOutput unit) {
 
         CellStyle style = null;

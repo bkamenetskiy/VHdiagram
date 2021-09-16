@@ -1,7 +1,12 @@
 import enums.UnitInput;
 import enums.UnitOutput;
+import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.fxml.FXML;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Border;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
@@ -15,6 +20,9 @@ public class InputOverviewController {
     private final double[] inputMaxM = new double[2];
     private final double[] inputVelocity = new double[4];
     private final double[] inputAltitude = new double[3];
+
+    // значения по умолчанию: 0 - Vd; 1 - Vc; 2 - Va; 3 - Vs; 4 - Md; 5 - Mc; 6 - Hmin; 7 - Hmax; 8 - dH
+    private String[] defaultValue = new String[] {"172.7777", "158.3333", "135.2777", "55.8333", "0.88", "0.82", "-300.0", "12200.0", "1.0"};
 
     @FXML
     private ComboBox<String> comboBox1;
@@ -113,14 +121,32 @@ public class InputOverviewController {
         this.unitOutput[6] = UnitOutput.Dimensionless_Mach;                                                                  // безразмерный мах
 
         // значения скоростей и высот
+        this.textField1.clear();
+        this.textField1.appendText(defaultValue[0]);
         this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+        this.textField2.clear();
+        this.textField2.appendText(defaultValue[1]);
         this.inputVelocity[1] = Double.parseDouble(textField2.getText());
+        this.textField3.clear();
+        this.textField3.appendText(defaultValue[2]);
         this.inputVelocity[2] = Double.parseDouble(textField3.getText());
+        this.textField4.clear();
+        this.textField4.appendText(defaultValue[3]);
         this.inputVelocity[3] = Double.parseDouble(textField4.getText());
+        this.textField5.clear();
+        this.textField5.appendText(defaultValue[4]);
         this.inputMaxM[0] = Double.parseDouble(textField5.getText());
+        this.textField6.clear();
+        this.textField6.appendText(defaultValue[5]);
         this.inputMaxM[1] = Double.parseDouble(textField6.getText());
+        this.textField7.clear();
+        this.textField7.appendText(defaultValue[6]);
         this.inputAltitude[0] = Double.parseDouble(textField7.getText());
+        this.textField8.clear();
+        this.textField8.appendText(defaultValue[7]);
         this.inputAltitude[1] = Double.parseDouble(textField8.getText());
+        this.textField9.clear();
+        this.textField9.appendText(defaultValue[8]);
         this.inputAltitude[2] = Double.parseDouble(textField9.getText());
 
         this.path = "c:\\Result.xlsx";
@@ -225,7 +251,14 @@ public class InputOverviewController {
 
     public void onTextField1Changed() {
 
-        this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+        String initialText = this.textField1.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
+
+        if (this.textField1.getText().length() != 0) {
+            this.textField1.clear();
+            this.textField1.appendText(finalText.toString());
+            this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+        }
 
         //Alert alert = new Alert(Alert.AlertType.ERROR, "Ввод недопустимого символа", ButtonType.OK);
         //alert.showAndWait();
@@ -233,53 +266,104 @@ public class InputOverviewController {
 
     public void onTextField2Changed() {
 
-        this.inputVelocity[1] = Double.parseDouble(textField2.getText());
+        String initialText = this.textField2.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
+
+        if (this.textField2.getText().length() != 0) {
+            this.textField2.clear();
+            this.textField2.appendText(finalText.toString());
+            this.inputVelocity[1] = Double.parseDouble(textField2.getText());
+        }
 
     }
 
     public void onTextField3Changed() {
 
-        this.inputVelocity[2] = Double.parseDouble(textField3.getText());
+        String initialText = this.textField3.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
+
+        if (this.textField3.getText().length() != 0) {
+            this.textField3.clear();
+            this.textField3.appendText(finalText.toString());
+            this.inputVelocity[2] = Double.parseDouble(textField3.getText());
+        }
 
     }
 
     public void onTextField4Changed() {
 
-        this.inputVelocity[3] = Double.parseDouble(textField4.getText());
+        String initialText = this.textField4.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
 
+        if (this.textField4.getText().length() != 0) {
+            this.textField4.clear();
+            this.textField4.appendText(finalText.toString());
+            this.inputVelocity[3] = Double.parseDouble(textField4.getText());
+        }
     }
 
     public void onTextField5Changed() {
 
-        this.inputMaxM[0] = Double.parseDouble(textField5.getText());
+        String initialText = this.textField5.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
 
+        if (this.textField5.getText().length() != 0) {
+            this.textField5.clear();
+            this.textField5.appendText(finalText.toString());
+            this.inputMaxM[0] = Double.parseDouble(this.textField5.getText());
+        }
     }
 
     public void onTextField6Changed() {
 
-        this.inputMaxM[1] = Double.parseDouble(textField6.getText());
+        String initialText = this.textField6.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
 
+        if (this.textField6.getText().length() != 0) {
+            this.textField6.clear();
+            this.textField6.appendText(finalText.toString());
+            this.inputMaxM[1] = Double.parseDouble(this.textField6.getText());
+        }
     }
 
     public void onTextField7Changed() {
 
-        this.inputAltitude[0] = Double.parseDouble(textField7.getText());
+        String initialText = this.textField7.getText();
+        StringBuilder finalText = getCorrectText(initialText, true);
+
+        if (this.textField7.getText().length() != 0) {
+            this.textField7.clear();
+            this.textField7.appendText(finalText.toString());
+            this.inputAltitude[0] = Double.parseDouble(this.textField7.getText());
+        }
 
     }
 
     public void onTextField8Changed() {
 
-        this.inputAltitude[1] = Double.parseDouble(textField8.getText());
+        String initialText = this.textField8.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
 
+        if (this.textField8.getText().length() != 0) {
+            this.textField8.clear();
+            this.textField8.appendText(finalText.toString());
+            this.inputAltitude[1] = Double.parseDouble(this.textField8.getText());
+        }
     }
 
-    public void onTextField9Changed() {
+    public void onTextField9Changed(KeyEvent event) {
 
-        this.inputAltitude[2] = Double.parseDouble(textField9.getText());
+        String initialText = this.textField9.getText();
+        StringBuilder finalText = getCorrectText(initialText, false);
 
+        if (this.textField9.getText().length() != 0) {
+            this.textField9.clear();
+            this.textField9.appendText(finalText.toString());
+            this.inputAltitude[2] = Double.parseDouble(this.textField9.getText());
+        }
     }
 
-    public void onButtonClick() throws IOException {
+    public void onButtonClick(ActionEvent event) throws IOException {
 
         Stage stage = new Stage();
         FileChooser fileChooser = new FileChooser();
@@ -296,15 +380,81 @@ public class InputOverviewController {
 
     }
 
-    private boolean isValid(char ch) {
-        return (ch >= '0' && ch <= '9') || (ch == '-') || (ch == '.');
+    private StringBuilder getCorrectText (String initialText, boolean keyNegativeValue) {
+
+        StringBuilder finalText = new StringBuilder();
+        char ch;
+
+        if ((!isValidateDot(initialText)) || (!isValidateABC(initialText, keyNegativeValue)))  {
+
+            for (int i = 0; i <= initialText.length() - 2; i++) {
+
+                ch = initialText.charAt(i);
+                finalText.append(ch);
+            }
+        }
+        else {
+            finalText.append(initialText);
+        }
+
+        return finalText;
+    }
+
+    private boolean isValidateABC (String text, boolean keyNegativeValue) {
+
+        boolean validate = false;
+        char ch;
+
+        if (!keyNegativeValue) {
+            for (int i = 0; i <= text.length() - 1 ; i++) {
+
+                ch = text.charAt(i);
+                validate = (ch == '.') || (ch >= '0' && ch <= '9');
+
+            }
+        }
+
+        if (keyNegativeValue) {
+            for (int i = 0; i <= text.length() - 1 ; i++) {
+
+                ch = text.charAt(i);
+                validate = (ch == '.') || (ch >= '0' && ch <= '9') || (ch == '-');
+
+            }
+        }
+        return validate;
     }
 
 
-    private boolean validate(String text)
-    {
-        return text.matches("[0-9]");
+    private boolean isValidateDot (String text){
+
+        boolean validate = false;
+        char ch;
+        int inc = 0;
+
+        for (int i = 0; i <= text.length() - 1 ; i++) {
+
+            ch = text.charAt(i);
+
+            if (ch == '.') {
+
+                inc++;
+            }
+        }
+
+        if (inc <= 1) {
+
+            validate = true;
+        }
+
+        return validate;
     }
+
+    private boolean isValidateNegative (String value){
+
+        return !(Double.parseDouble(value) <= 0);
+    }
+
 
 
 
@@ -312,3 +462,19 @@ public class InputOverviewController {
 
 
 }
+
+
+
+
+/*
+    private boolean isValid(char ch) {
+
+        return (ch >= '0' && ch <= '9') || (ch == '-') || (ch == '.');
+    }
+
+
+    private boolean validate(String text) {
+
+        return text.matches("[0-9]");
+    }
+ */
