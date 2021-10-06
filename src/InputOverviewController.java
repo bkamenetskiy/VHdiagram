@@ -64,7 +64,8 @@ public class InputOverviewController {
         // высота
         this.comboBox1.getItems().setAll(
                 "м",
-                "км"
+                "км",
+                "фут"
         );
 
         // скорость
@@ -164,6 +165,9 @@ public class InputOverviewController {
                 break;
             case 1:
                 this.unitInput[0] = UnitInput.Kilometer;
+                break;
+            case 2:
+                this.unitInput[0] = UnitInput.Foot;
                 break;
             default:
                 this.unitInput[0] = UnitInput.Meter;

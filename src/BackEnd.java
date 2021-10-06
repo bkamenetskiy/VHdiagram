@@ -1,6 +1,5 @@
 import enums.UnitInput;
 import enums.UnitOutput;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -24,10 +23,10 @@ public class BackEnd {
     private UnitOutput[] unitOutput;
     private String path;
 
-    protected void back() throws IOException {
+    protected void back() {
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
-        double[] inputVelocity = new double[] {622.0, 570.0, 487.0, 201.0}; // 172.777 158.333 135.2777 55.8333
+        double[] inputVelocity = new double[] {622.0, 570.0, 487.0, 201.0}; // 172.777 158.333 135.2777 55.8333 м/с
 
         // законодательное ограничение скоростей Vd и Vc по числу М: 0 - max Md; 1 - max Mc
         double[] inputMaxM = new double[] {0.88, 0.82};
@@ -73,8 +72,9 @@ public class BackEnd {
 
         // относительные положения параметров (внутренние смещения) в соответствующих массивах (блоках):
         // 0. Блок высот:
-        // 0 - положение высоты (в метрах) в блоке высот (индекс);
-        // 1 - положение высоты (в футах) в блоке высот (индекс) - заразервирована, не используется.
+        // 0 - положение высоты (в метрах) в блоке высот (индекс) - по ним проходят внутренние рассчеты;
+        // 1 - положение высоты (в футах) в блоке высот (индекс) - заразервирована, не используется;
+        // 2 - положение высоты в исходных данных без конвертации.
         // 1. Блок параметров атмосферы:
         // 0 - положение плотноти (индекс);
         // 1 - положение атмосферного давления (индекс);
@@ -86,7 +86,7 @@ public class BackEnd {
         // 2 - относительное положение V (TAS) (индекс);
         // 3 - относительное положение V (EAS) (индекс);
         // 4 - относительное положение q (индекс).
-        int[] internalOffsetsAltitude = new int[] {0, 1};
+        int[] internalOffsetsAltitude = new int[] {0, 1, 2};
         int[] internalOffsetsAtmParam = new int[] {0, 1, 2, 3};
         int[] internalOffsetsVelocity = new int[] {0, 1, 2, 3, 4};
 

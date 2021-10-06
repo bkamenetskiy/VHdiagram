@@ -5,8 +5,8 @@ import exportexcel.ExportData;
 import exportexcel.ExportHeading;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import solvers.SolverAtmParam;
-import solvers.SolverUnitInput;
+import solvers.SolverAtmosphere;
+import solvers.SolverUnitConverter;
 import solvers.SolverVelocity;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,24 +45,46 @@ public class Engine {
     private double[] inputVelocityConvert;
     private double[] inputAltitudeConvert;
 
+    // конвертер единиц измерения
+    SolverUnitConverter unitConverter = new SolverUnitConverter();                                                      // конвертер единиц измерения
+
     // расчет скоростей
     protected void dataArray (double[] inputMaxM) {
 
         // все что нужно для рассчетов
         SolverVelocity solverVelocity = new SolverVelocity();                                                           // решатели
-        SolverAtmParam solverAtmParam = new SolverAtmParam();
+        SolverAtmosphere solverAtmosphere = new SolverAtmosphere();
 
-        // вспомогательные переменные
-        this.rowCount = (int) Math.ceil ((Math.abs(inputAltitude[0]) + Math.abs(inputAltitude[1])) / 1.0);             // размерность массива
+        // сконвертировали исходные данные в СИ
+        getInputUnitConvert();
+
+
+        // Определение размерности маасива.
+        // Предполагается, что рассчеты идут с шагом в 1 метр в системе Си или 1 фут в имперской системе.
+        // Километры, будучи кратной единицей измерения, идут с шагом 0,001
+        switch (this.unitInput[0]) {
+
+            case Meter:
+
+            case Foot:
+
+                this.rowCount = (int) Math.ceil ((Math.abs(this.inputAltitude[0]) + Math.abs(this.inputAltitude[1])));
+                break;
+
+            case Kilometer:
+
+                this.rowCount = (int) Math.ceil ((Math.abs(this.inputAltitude[0]) + Math.abs(this.inputAltitude[1])) / 0.001);
+                break;
+        }
 
         // создание массивов
-        double[][] blank = new double[0][0];                                                                              // заглушка
-        double[][] dataAltitude = new double[rowCount + 1][2];                                                            // массив для хранения высот
-        double[][] dataAtmParam = new double[rowCount + 1][4];                                                            // массив для хранения параметров атмосферы
-        double[][] dataVelocityVd = new double[rowCount + 1][5];                                                          // массив для скорости Vd
-        double[][] dataVelocityVc = new double[rowCount + 1][5];                                                          // массив для скорости Vc
-        double[][] dataVelocityVa = new double[rowCount + 1][5];                                                          // массив для скорости Va
-        double[][] dataVelocityVs = new double[rowCount + 1][5];                                                          // массив для скорости Vs
+        double[][] blank = new double[0][0];                                                                            // заглушка
+        double[][] dataAltitude = new double[this.rowCount + 1][this.listInternalOffsets.get(0).length];                // массив для хранения высот
+        double[][] dataAtmParam = new double[this.rowCount + 1][this.listInternalOffsets.get(1).length];                // массив для хранения параметров атмосферы
+        double[][] dataVelocityVd = new double[this.rowCount + 1][this.listInternalOffsets.get(2).length];              // массив для скорости Vd
+        double[][] dataVelocityVc = new double[this.rowCount + 1][this.listInternalOffsets.get(2).length];              // массив для скорости Vc
+        double[][] dataVelocityVa = new double[this.rowCount + 1][this.listInternalOffsets.get(2).length];              // массив для скорости Va
+        double[][] dataVelocityVs = new double[this.rowCount + 1][this.listInternalOffsets.get(2).length];              // массив для скорости Vs
 
         // скинули в хранилище
         this.listData.add(dataAltitude);
@@ -72,13 +94,10 @@ public class Engine {
         this.listData.add(dataVelocityVa);
         this.listData.add(dataVelocityVs);
 
-        // сконвертировали исходные данные в СИ
-        getInputUnitConvert();
-
         // записали высоты
-        solverAtmParam.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0)[0], this.inputAltitudeConvert[0]);
+        solverAtmosphere.getAltitude(this.listData.get(0), this.listInternalOffsets.get(0), this.inputAltitude[0], this.unitConverter, this.unitInput);
         // записали атмосферу
-        solverAtmParam.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
+        solverAtmosphere.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
         // записали скорость Vd
         solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[0], inputMaxM[0], this.settingLimitType[0], blank);
         // записали скорость Vc
@@ -88,16 +107,16 @@ public class Engine {
         // записали скорость Vs
         solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[3], -1.0f, this.settingLimitType[3], blank);
 
-        /*
+
         // выводим в консоль
-        for (float[]floats : this.listData.get(0)) {
+        for (double[]floats : this.listData.get(0)) {
             System.out.println();
-            for (float result : floats) {
+            for (double result : floats) {
                 System.out.printf("%.6f", result);
                 System.out.print("     ");
             }
         }
-        */
+
     }
 
 
@@ -113,13 +132,13 @@ public class Engine {
         int globalVerticalOffset = 26;                                                                                  // глобальное смещение всей таблицы, включая заголовок, по вертикали
 
         // экспорт заголовка
-        ExportHeading heading = new ExportHeading();
-        heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, this.unitOutput);
+        //ExportHeading heading = new ExportHeading();
+        //heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, this.unitOutput);
 
         // экспорт данных
         ExportData data = new ExportData();
         data.exportData(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, localVerticalOffset,
-                (int) this.inputAltitude[2], this.rowCount, this.rowEndIndex, this.unitOutput);
+                this.inputAltitude[2], this.rowCount, this.rowEndIndex, this.unitOutput, this.unitConverter, this.unitInput);
 
         // отрисовка графиков
         ExportChart chart = new ExportChart();
@@ -150,20 +169,19 @@ public class Engine {
     private void getInputUnitConvert() {
 
         // вспомогательные переменные
-        SolverUnitInput inputUnitConvert = new SolverUnitInput();
         double[] altitude = new double[this.inputAltitude.length];
         double[] velocity = new double[this.inputVelocity.length];
 
         // скорости
         for (int i = 0; i <= velocity.length - 1; i++) {
 
-            velocity[i] = inputUnitConvert.getUnitInput(this.unitInput[1], this.inputVelocity[i]);
+            velocity[i] = this.unitConverter.getUnitInputToSI(this.unitInput[1], this.inputVelocity[i]);
         }
 
         // высоты
         for (int i = 0; i <= altitude.length - 1; i++) {
 
-            altitude[i] = inputUnitConvert.getUnitInput(this.unitInput[0], this.inputAltitude[i]);
+            altitude[i] = this.unitConverter.getUnitInputToSI(this.unitInput[0], this.inputAltitude[i]);
         }
 
         this.inputAltitudeConvert = altitude;

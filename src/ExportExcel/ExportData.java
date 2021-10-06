@@ -1,25 +1,26 @@
 package exportexcel;
 
+import enums.UnitInput;
 import enums.UnitOutput;
 import org.apache.commons.math3.util.Precision;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
-import solvers.SolverUnitOutput;
+import solvers.SolverUnitConverter;
 import java.util.ArrayList;
 
 public class ExportData {
 
     public void exportData(XSSFWorkbook dataBook, XSSFSheet sheet, ArrayList<double[][]> listData, ArrayList<int[]> listInternalOffsets,
-                           int globalVerticalOffset, int localVerticalOffset, int outputAltitudeInc, int rowCount, int[] rowEndIndex, UnitOutput[] unitOutput) {
+                           int globalVerticalOffset, int localVerticalOffset, double outputAltitudeInc, int rowCount, int[] rowEndIndex,
+                           UnitOutput[] unitOutput, SolverUnitConverter unitConverter, UnitInput[] unitInput) {
 
         XSSFRow rowData;                                                                                                // строка
         Cell cell;                                                                                                      // ячейка
         CellStyleNumber cellStyleNumber = new CellStyleNumber();                                                        // стиль ячейки
         UnitMatching unitMatching = new UnitMatching();                                                                 // сопоставитель номера столбца и единицы измерения
-        SolverUnitOutput outputUnitConvert = new SolverUnitOutput();                                                    // конвертер единиц измерения
 
         // вспомогательные переменные
-        int rowAltitudeInc = 0;                                                                                         // счетчик строк в массивах данных
+        int rowDataArray = 0;                                                                                         // счетчик строк в массивах данных
         int rowSheetInc = 0;                                                                                            // счетчик строк в листе excel
         int offset = 0;                                                                                                 // смещение блоков относительно друг друга
         double currentValue;                                                                                            // вспомогательная переменная для конвертации единиц измерения
@@ -29,7 +30,14 @@ public class ExportData {
         // создание стилей ячеек
         cellStyleNumber.createCellStyle(dataBook, unitOutput);
 
-        while (rowAltitudeInc <= rowCount) {
+        if (unitInput[0] == UnitInput.Kilometer) {
+            outputAltitudeInc = outputAltitudeInc * 1000.0;
+        }
+
+        // до тех пор, пока текущее значение высоты во вспомогательном столбце меньше чем максимальное значение в этом же столбце, выполняется цикл
+        while (listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] <= listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]) {
+
+            System.out.println(listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] +" "+ listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]);
 
             // создание строки
             rowData = sheet.createRow((short) rowSheetInc + localVerticalOffset + globalVerticalOffset);
@@ -49,42 +57,46 @@ public class ExportData {
                 // в хранилище перебираем соответствующий массив данных
                 for (int column = 0; column <= listData.get(listDataIndex)[0].length - 1; column++) {
 
-                    // задаем временной переменной текущее значение высоты
-                    // условие необходимо, что бы в футы не записались нули, т.к. во время расчета высот метры в имперские единицы не переводились, и столбец заполнялся 0
-                    if (listDataIndex == 0) {
-
-                        currentValue = listData.get(listDataIndex)[rowAltitudeInc][listInternalOffsets.get(0)[0]];
-                    }
-                    else {
-                        currentValue = listData.get(listDataIndex)[rowAltitudeInc][column];
-                    }
+                    // задаем временной переменной текущее значение
+                    currentValue = listData.get(listDataIndex)[rowDataArray][column];
 
                     // конвертация и запись в ячейку
-                    // возврат единиц измерения из сопоставителя
+                    // возврат единиц измерения и стилей из сопоставителей
                     unit = unitMatching.getUnit(listDataIndex, column, listInternalOffsets, unitOutput);
                     style = cellStyleNumber.getUnitStyle(unit);
 
                     // экспорт. отрицательные высоты и параметры атмосферы экспортируются
-                    if (listDataIndex < 2) {
+                    // блок высот. "вспомогательный" столбец экспортироваться не должен.
+                    // высоты выводятся следующим образом: футы всегда выводятся как есть, т.к. их не во что конвертировать;
+                    // метры выводятся в зависимости от настроек пользователя - либо как есть, либо конвертируются в километры
+                    if ((listDataIndex == 0) && (column != listInternalOffsets.get(0)[2])) {
+
+                        cell = rowData.createCell(column + offset);
+                        cell.setCellValue(Precision.round(currentValue, unit.getUnitPrecision()));  // присвоение ячейке округленного значения
+                        cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
+                    }
+
+                    // блок параметров атмосферы. здесь и далее в индексе строки -1 т.к. в блоке высот есть лишний столбец, который учитывается при рассчете offset
+                    if (listDataIndex == 1) {
 
                         //rowData.createCell(column + offset).setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue)); - старая версия
-                        cell = rowData.createCell((short) column + offset);
-                        cell.setCellValue(Precision.round(outputUnitConvert.getUnitOutput(unit, currentValue), unit.getUnitPrecision()));  // присвоение ячейке округленного значения
+                        cell = rowData.createCell(column + offset - 1);
+                        cell.setCellValue(Precision.round(unitConverter.getSIToUnitOutput(unit, currentValue), unit.getUnitPrecision()));  // присвоение ячейке округленного значения
                         cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
                     }
 
 
-                    // а вот отрицательные скорости - нет.
+                    // а вот отрицательные скорости не экспортируются.
                     if ((listDataIndex >= 2) & (currentValue >= 0.0)){
 
-                        cell = rowData.createCell((short) column + offset);
-                        cell.setCellValue(Precision.round(outputUnitConvert.getUnitOutput(unit, currentValue), unit.getUnitPrecision()));
+                        cell = rowData.createCell(column + offset - 1);
+                        cell.setCellValue(Precision.round(unitConverter.getSIToUnitOutput(unit, currentValue), unit.getUnitPrecision()));
                         cell.setCellStyle(style);
                     }
                     // вместо них создается пустая ячейка
                     if ((listDataIndex >= 2) & (currentValue <= 0.0)){
 
-                        rowData.createCell((short) column + offset).setCellValue("");
+                        rowData.createCell(column + offset - 1).setCellValue("");
                     }
 
                     // Ma граничен сверху Mc, при этом, если Ma превышает предельное значение, он обращается в -1.
@@ -97,7 +109,13 @@ public class ExportData {
                     }
                 }
             }
-            rowAltitudeInc = rowAltitudeInc + outputAltitudeInc;                                                        // установка значения следующей высоты для вывода
+
+            // по достижении максимального значения цикл должен быть прерван чтобы не добавить лишние инкременты и не вылететь с ошибкой
+            if (listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] == listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]) {
+                break;
+            }
+
+            rowDataArray = rowDataArray + (int) outputAltitudeInc;                                                        // установка значения следующей высоты для вывода
             rowSheetInc++;                                                                                              // установка индекса следующей строки
         }
     }

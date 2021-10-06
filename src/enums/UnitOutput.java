@@ -32,7 +32,7 @@ public enum UnitOutput {
         return this.unitName;
     }
 
-    // метод. возвращает точность округления
+    // метод. возвращает точность округления для библиотечного метода округления
     public int getUnitPrecision() {
         return this.precision;
     }

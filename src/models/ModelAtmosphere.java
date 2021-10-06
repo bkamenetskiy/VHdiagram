@@ -1,18 +1,24 @@
 package models;
 
+/**
+ * Модель параметров атмосферы. Разработана в ЦАГИ, верифицирована в 2010 г.
+ * Единицы измерения - СИ.
+ * Методика частично изложена в книге Остославского "Аэродинамика самолета" (глава 1, раздел 2).
+ * Приведенная модель не соответствует модели, изложенной в ГОСТ 4401-81 "Атмосфера стандартная. Параметры".
+ */
+
 public final class ModelAtmosphere {
 
     final private double dens0 = 1.225;
     final private double press0 = 101325.0;
-
     private double altitude;
 
-    // функция плотности от высоты (кг/м3)
-    public double getDens() {
+    public double getDens() {                                                                                           // функция плотности от высоты (кг/м3)
+
         double densH11, densRel;
 
         if (this.altitude > 11000.0) {
-            densH11 = Math.pow(1.0-11000.0 / 44330.8 , 4.255879);
+            densH11 = Math.pow(1.0 - 11000.0 / 44330.8 , 4.255879);
             densRel = (densH11 * Math.exp(-1.576888 * (this.altitude - 11000.0) / 10000.0));
         }
         else {
@@ -22,8 +28,8 @@ public final class ModelAtmosphere {
         return densRel * this.dens0;
     }
 
-    // функция атмосферного давления от высоты (Па)
-    public double getPressStatic() {
+    public double getPressStatic() {                                                                                    // функция атмосферного давления от высоты (Па)
+
         double pressH11, pressRel;
 
         if (this.altitude > 11000.0) {
@@ -36,8 +42,8 @@ public final class ModelAtmosphere {
         return (pressRel * this.press0);
     }
 
-    // функция температуры от высоты (K)
-    public double getTemp() {
+    public double getTemp() {                                                                                           // функция абсолютной температуры от высоты (K)
+
         double temp;
 
         if (this.altitude > 11000.0) {
@@ -49,8 +55,8 @@ public final class ModelAtmosphere {
         return temp;
     }
 
-    // функция скорости звука от высоты (м/с)
-    public double getSoundVel() {
+    public double getSoundVel() {                                                                                       // функция скорости звука от высоты (м/с)
+
         double tempAbs;
 
         if (this.altitude > 11000.0) {
