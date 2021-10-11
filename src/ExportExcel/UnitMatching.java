@@ -6,7 +6,17 @@ import java.util.ArrayList;
 
 class UnitMatching {
 
-    // сопоставление стобца данных и его единиц измерения
+    /**
+     * Модуль сопоставления единиц измерения.
+     *
+     * Сопоставляется индекст внутреннего смещения в блоке с соответствующей ему единицей измерения в настройках вывода.
+     *
+     * @param listDataIndex
+     * @param column
+     * @param listInternalOffsets
+     * @param unitOutput
+     * @return
+     */
 
     protected UnitOutput getUnit(int listDataIndex, int column, ArrayList<int[]> listInternalOffsets, UnitOutput[] unitOutput) {
 
@@ -16,6 +26,7 @@ class UnitMatching {
 
             // блок с высотами
             case 0:
+
                 // высота (длина) в метрической системе
                 if (column == listInternalOffsets.get(0)[0]) {
                     unit = unitOutput[0];
@@ -24,6 +35,11 @@ class UnitMatching {
                 // высота (длина) в имперской системе
                 if (column == listInternalOffsets.get(0)[1]) {
                     unit = unitOutput[1];
+                }
+
+                // высота (длина) во вспомогательном столбце
+                if (column == listInternalOffsets.get(0)[2]) {
+                    unit = unitOutput[0];
                 }
                 break;
 

@@ -37,7 +37,7 @@ public class ExportData {
         // до тех пор, пока текущее значение высоты во вспомогательном столбце меньше чем максимальное значение в этом же столбце, выполняется цикл
         while (listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] <= listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]) {
 
-            System.out.println(listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] +" "+ listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]);
+            //System.out.println(listData.get(0)[rowDataArray][listInternalOffsets.get(0)[2]] +" "+ listData.get(0)[listData.get(0).length-1][listInternalOffsets.get(0)[2]]);
 
             // создание строки
             rowData = sheet.createRow((short) rowSheetInc + localVerticalOffset + globalVerticalOffset);
@@ -76,7 +76,7 @@ public class ExportData {
                         cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
                     }
 
-                    // блок параметров атмосферы. здесь и далее в индексе строки -1 т.к. в блоке высот есть лишний столбец, который учитывается при рассчете offset
+                    // блок параметров атмосферы. здесь и далее в индексе строки введено смещение в лево -1 т.к. в блоке высот есть лишний столбец, который учитывается при рассчете offset
                     if (listDataIndex == 1) {
 
                         //rowData.createCell(column + offset).setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue)); - старая версия

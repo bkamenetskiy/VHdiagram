@@ -132,8 +132,8 @@ public class Engine {
         int globalVerticalOffset = 26;                                                                                  // глобальное смещение всей таблицы, включая заголовок, по вертикали
 
         // экспорт заголовка
-        //ExportHeading heading = new ExportHeading();
-        //heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, this.unitOutput);
+        ExportHeading heading = new ExportHeading();
+        heading.exportHeading(dataBook, sheet, this.listData, this.listInternalOffsets, globalVerticalOffset, this.unitOutput);
 
         // экспорт данных
         ExportData data = new ExportData();

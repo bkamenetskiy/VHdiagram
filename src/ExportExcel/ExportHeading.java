@@ -22,7 +22,7 @@ public class ExportHeading {
         int rowUnit = 2 + globalVerticalOffset;                                                                         // номер строки с единицами измерения величины
         int[] rowIndex = new int[] {rowName, rowType, rowUnit};
         int offset = 0;                                                                                                 // смещение блоков относительно друг друга
-        int lenght;                                                                                                     // для расчета длинн блоков (слияние ячеек)
+        int length;                                                                                                     // для расчета длинн блоков (слияние ячеек)
         UnitOutput unit;                                                                                                // хранит тип единицы измерения
 
         // создание стилей
@@ -38,21 +38,32 @@ public class ExportHeading {
             for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
 
                 // рассчитываем смещения
+                int v = 0;
                 if (listDataIndex == 0) {
                     offset = 0;
-                    lenght = listData.get(0)[0].length;
+                    v = 0;
                 }
-                else {
-                    offset = listData.get(listDataIndex - 1)[0].length + offset;
-                    lenght = listData.get(listDataIndex)[0].length;
+
+                if (listDataIndex >= 1) {
+                    offset = offset + listData.get(listDataIndex - 1)[0].length;
+                    v = offset - 1 ;
                 }
+
+                length = listData.get(listDataIndex)[0].length;
 
                 // заполняем первую строку названиями блоков
                 if (row == 0) {
 
+
                     // создание ячейки и форматирование
-                    cell = rowData.createCell(offset);
+                    if (listDataIndex == 0) {
+                        cell = rowData.createCell(offset);
+                    }
+                    else {
+                        cell = rowData.createCell(offset - 1);
+                    }
                     cell.setCellStyle(cellStyleText.getStyleText());
+
 
                     // заголовок
                     cell.setCellValue(blockType(listDataIndex));
@@ -60,10 +71,10 @@ public class ExportHeading {
                     // слияние ячеек
                     // в блоке высоты надо, помимо ячеек, объединить первую и вторую строку
                     if (listDataIndex == 0) {
-                        sheet.addMergedRegion(new CellRangeAddress(rowName, rowType, offset, offset + lenght - 1));
+                        sheet.addMergedRegion(new CellRangeAddress(rowName, rowType, offset, offset + length - 1 - 1));
                     }
                     else {
-                        sheet.addMergedRegion(new CellRangeAddress(rowName, rowName, offset, offset + lenght - 1));
+                        sheet.addMergedRegion(new CellRangeAddress(rowName, rowName, offset - 1, offset - 1 + length - 1));
                     }
                 }
 
@@ -74,7 +85,13 @@ public class ExportHeading {
                     for (int column = 0; column <= listData.get(listDataIndex)[0].length - 1; column++) {
 
                         // создание ячейки, форматирование, задание значения
-                        cell = rowData.createCell(offset + column);
+                        if (listDataIndex == 0) {
+                            cell = rowData.createCell(offset + column);
+                        }
+                        else {
+                            cell = rowData.createCell(offset - 1 + column);
+                        }
+
                         cell.setCellStyle(cellStyleText.getStyleText());
                         cell.setCellValue(getType(listInternalOffsets, listDataIndex, column));
                     }
@@ -87,14 +104,22 @@ public class ExportHeading {
                     for (int column = 0; column <= listData.get(listDataIndex)[0].length - 1; column++) {
 
                         // возврат единиц измерения
-                        unit = unitMatching.getUnit(listDataIndex, column, listInternalOffsets, unitOutput);
+
+                        unit = unitMatching.getUnit(listDataIndex , column, listInternalOffsets, unitOutput);
 
                         // создание ячейки, форматирование, задание значения
-                        cell = rowData.createCell(offset + column);
+                        if (listDataIndex == 0) {
+                            cell = rowData.createCell(offset + column);
+                        }
+                        else {
+                            cell = rowData.createCell(offset + column - 1);
+                        }
+
                         cell.setCellStyle(cellStyleText.getStyleText());
                         cell.setCellValue(unit.getUnitName());
                     }
                 }
+
             }
         }
     }

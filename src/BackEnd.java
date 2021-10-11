@@ -107,6 +107,7 @@ public class BackEnd {
         engine.dataArray(this.inputMaxM);
         engine.exportExcel();
         engine.writeFile(this.path);
+        engine = null;
     }
 
 }

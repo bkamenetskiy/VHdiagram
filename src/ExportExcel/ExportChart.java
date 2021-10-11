@@ -85,10 +85,10 @@ public class ExportChart {
 
                 // вертикальная ось число Маха
                 dataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        offset + listInternalOffsets.get(2)[1], offset + listInternalOffsets.get(2)[1]));
+                        offset - 1 + listInternalOffsets.get(2)[1], offset - 1 + listInternalOffsets.get(2)[1]));
                 // вертикальная ось Vtas
                 dataSourceVtas[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        offset + listInternalOffsets.get(2)[2], offset + listInternalOffsets.get(2)[2]));
+                        offset - 1 + listInternalOffsets.get(2)[2], offset - 1 + listInternalOffsets.get(2)[2]));
 
                 // горизонтальная ось число Маха
                 numericalDataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
