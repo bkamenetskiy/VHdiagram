@@ -1,0 +1,42 @@
+
+    private void createCellFormat(int column, float cellValue) {
+
+        // создание ячейки с индексом column
+        this.cellData = rowData.createCell(column);
+        // присвоение ячейки значения cellValue
+        this.cellData.setCellValue(cellValue);
+    }
+
+    private void createFormat(String format, HorizontalAlignment halign, VerticalAlignment valign) {
+
+
+
+        // настройки форматирования ячейки
+        // горизонтальное выравнивание
+        this.cellStyle.setAlignment(halign);
+        //вертикальное выравнивание
+        this.cellStyle.setVerticalAlignment(valign);
+        // настройки разрядности
+        this.cellStyle.setDataFormat(this.cellFormat.getFormat(format));
+
+        // присвоение ячейки форматирования
+        this.cellData.setCellStyle(this.cellStyle);
+
+    }
+
+
+    overview
+    <AnchorPane prefHeight="400.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" fx:controller="InputOverviewController">
+    layout
+    <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" />
+
+
+
+комбобоксы
+http://velvet.tealeaf.su/javafx.html
+
+сохранение файлов
+https://www.genuinecoder.com/save-files-javafx-filechooser/
+
+форматирование чисел и текста
+http://study-java.ru/uroki-java/formatirovanie-chisel-i-texta-v-java/

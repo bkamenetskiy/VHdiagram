@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<AnchorPane prefHeight="400.0" prefWidth="450.0" xmlns="http://javafx.com/javafx/8.0.231" xmlns:fx="http://javafx.com/fxml/1" fx:controller="InputOverviewController">
+   <children>
+      <SplitPane dividerPositions="0.36" layoutX="189.0" layoutY="84.0" prefHeight="160.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <Label alignment="CENTER" layoutX="60.0" layoutY="14.0" text="Исходные данные" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <GridPane layoutX="-12.0" layoutY="163.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="25.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="90.0" minWidth="10.0" prefWidth="90.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="10.0" prefWidth="107.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Label alignment="TOP_LEFT" text="Vd">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Vc" GridPane.rowIndex="1">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Va" GridPane.rowIndex="2">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Vs" GridPane.rowIndex="3">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Hmin" GridPane.rowIndex="6">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Hmax" GridPane.rowIndex="7">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="dH" GridPane.rowIndex="8">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <TextField fx:id="textField1" onKeyReleased="#onTextField1Changed" text="172.7777" GridPane.columnIndex="1" />
+                        <TextField fx:id="textField2" onKeyReleased="#onTextField2Changed" text="158.3333" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="textField3" onKeyReleased="#onTextField3Changed" text="135.2777" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <TextField fx:id="textField4" onKeyReleased="#onTextField4Changed" text="55.8333" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <TextField fx:id="textField7" onKeyReleased="#onTextField7Changed" text="-300.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        <TextField fx:id="textField8" onKeyReleased="#onTextField8Changed" text="12200.0" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                        <TextField fx:id="textField9" onKeyReleased="#onTextField9Changed" text="1.0" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                        <TextField fx:id="textField5" onKeyReleased="#onTextField5Changed" text="0.88" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <TextField fx:id="textField6" onKeyReleased="#onTextField6Changed" text="0.82" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                        <Label text="Md max" GridPane.rowIndex="4">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                        <Label text="Mc max" GridPane.rowIndex="5">
+                           <GridPane.margin>
+                              <Insets left="15.0" />
+                           </GridPane.margin>
+                        </Label>
+                     </children>
+                  </GridPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="363.0">
+               <children>
+                  <Label alignment="CENTER" layoutX="133.0" layoutY="14.0" text="Настройки" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                  <Label alignment="CENTER" layoutX="14.0" layoutY="45.0" prefHeight="18.0" prefWidth="293.0" text="Единицы измерения исходных данных" textAlignment="CENTER" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="25.0" />
+                  <GridPane layoutX="-7.0" layoutY="59.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="45.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="60.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Label text="Высота:" />
+                        <Label text="Скорость:" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboBox1" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" />
+                        <ComboBox fx:id="comboBox2" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                     </children>
+                  </GridPane>
+                  <Label alignment="CENTER" layoutX="51.0" layoutY="149.0" text="Единицы измерения результата" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="120.0" />
+                  <GridPane layoutX="14.0" layoutY="163.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0" AnchorPane.topAnchor="140.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="60.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Label text="Высота:" />
+                        <Label text="Скорость:" GridPane.rowIndex="1" />
+                        <Label text="Давление:" GridPane.rowIndex="2" />
+                        <Label text="Температура:" GridPane.rowIndex="3" />
+                        <ComboBox fx:id="comboBox3" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" />
+                        <ComboBox fx:id="comboBox4" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboBox5" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <ComboBox fx:id="comboBox6" onAction="#onComboBoxChanged" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                     </children>
+                  </GridPane>
+                  <Button fx:id="button1" layoutX="212.0" layoutY="359.0" mnemonicParsing="false" onAction="#onButtonClick" text="Рассчет" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="14.0" />
+                  <Label alignment="CENTER" layoutX="128.0" layoutY="285.0" text="Настройки графика" textAlignment="CENTER" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="275.0" />
+                  <GridPane layoutX="14.0" layoutY="292.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="15.0">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="180.0" minWidth="10.0" prefWidth="180.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="122.0" minWidth="10.0" prefWidth="97.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <CheckBox mnemonicParsing="false" text="Упрощенное построение" />
+                        <CheckBox mnemonicParsing="false" text="Высота в футах" GridPane.rowIndex="1" />
+                     </children>
+                  </GridPane>
+               </children>
+            </AnchorPane>
+        </items>
+      </SplitPane>
+   </children>
+</AnchorPane>
