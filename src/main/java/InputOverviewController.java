@@ -374,7 +374,7 @@ public class InputOverviewController {
         fileChooser.setTitle("Select directory for save");
         fileChooser.setInitialFileName("Result");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel", "*.xlsx"));
-        fileChooser.setInitialDirectory(new File("D:\\"));
+        fileChooser.setInitialDirectory(new File("C:\\"));
         File file = fileChooser.showSaveDialog(stage);
         this.path = file.getAbsolutePath();
 
