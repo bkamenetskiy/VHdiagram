@@ -23,7 +23,12 @@ public class BackEnd {
     private UnitOutput[] unitOutput;
     private String path;
 
-    protected void back() {
+    /**
+     * Рассчитывает данные диаграммы и сохраняет книгу Excel по выбранному пути.
+     *
+     * @throws IOException если книгу не удалось записать
+     */
+    protected void back() throws IOException {
 
         // индикаторные земные скорости Vcas в следующем порядке: Vd; Vc; Va; Vs
         double[] inputVelocity = new double[] {622.0, 570.0, 487.0, 201.0}; // 172.777 158.333 135.2777 55.8333 м/с
@@ -90,24 +95,20 @@ public class BackEnd {
         int[] internalOffsetsAtmParam = new int[] {0, 1, 2, 3};
         int[] internalOffsetsVelocity = new int[] {0, 1, 2, 3, 4};
 
-        // путь к файлу результатов
-        String path = "d:\\result.xlsx";
+        // Собираем индексы столбцов внутри блоков данных в порядке, который ожидает Engine.
+        ArrayList <int []> listInternalOffsets = new ArrayList <>();
+        listInternalOffsets.add(internalOffsetsAltitude); // Блок высот.
+        listInternalOffsets.add(internalOffsetsAtmParam);  // Блок параметров атмосферы.
+        listInternalOffsets.add(internalOffsetsVelocity); // Блок скоростей.
 
-
-
-        ArrayList <int []> listInternalOffsets = new ArrayList <>();                                                    // хранилище внутренних (относительных) смещений
-        listInternalOffsets.add(internalOffsetsAltitude);
-        listInternalOffsets.add(internalOffsetsAtmParam);
-        listInternalOffsets.add(internalOffsetsVelocity);
-
-
+        // Передаём расчётному модулю исходные данные, единицы измерения и типы ограничений скоростей.
         Engine engine = new Engine(settingLimitType, listInternalOffsets, this.inputAltitude, this.inputVelocity, this.unitOutput, this.unitInput);
 
-        // экспортируем второй вариант
+        // Рассчитываем параметры атмосферы и скорости по высотам с учётом предельных чисел Маха.
         engine.dataArray(this.inputMaxM);
-        engine.exportExcel();
-        engine.writeFile(this.path);
-        engine = null;
+
+        // Формируем книгу Excel с таблицей и диаграммами и сохраняем её по выбранному пути.
+        engine.exportExcel(this.path);
     }
 
 }

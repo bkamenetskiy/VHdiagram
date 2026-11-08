@@ -10,6 +10,9 @@ import java.util.ArrayList;
 
 public class ExportData {
 
+    /**
+     * Записывает расчётные данные в выбранных единицах и запоминает последние строки рядов скоростей.
+     */
     public void exportData(XSSFWorkbook dataBook, XSSFSheet sheet, ArrayList<double[][]> listData, ArrayList<int[]> listInternalOffsets,
                            int globalVerticalOffset, int localVerticalOffset, double outputAltitudeInc, int rowCount, int[] rowEndIndex,
                            UnitOutput[] unitOutput, SolverUnitConverter unitConverter, UnitInput[] unitInput) {
@@ -20,7 +23,7 @@ public class ExportData {
         UnitMatching unitMatching = new UnitMatching();                                                                 // сопоставитель номера столбца и единицы измерения
 
         // вспомогательные переменные
-        int rowDataArray = 0;                                                                                         // счетчик строк в массивах данных
+        int rowDataArray = 0;                                                                                           // счетчик строк в массивах данных
         int rowSheetInc = 0;                                                                                            // счетчик строк в листе excel
         int offset = 0;                                                                                                 // смещение блоков относительно друг друга
         double currentValue;                                                                                            // вспомогательная переменная для конвертации единиц измерения
@@ -71,6 +74,9 @@ public class ExportData {
                     // метры выводятся в зависимости от настроек пользователя - либо как есть, либо конвертируются в километры
                     if ((listDataIndex == 0) && (column != listInternalOffsets.get(0)[2])) {
 
+                        if (column == listInternalOffsets.get(0)[0]) {
+                            currentValue = unitConverter.getSIToUnitOutput(unit, currentValue);
+                        }
                         cell = rowData.createCell(column + offset);
                         cell.setCellValue(Precision.round(currentValue, unit.getUnitPrecision()));  // присвоение ячейке округленного значения
                         cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля

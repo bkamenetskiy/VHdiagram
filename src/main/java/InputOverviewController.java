@@ -1,28 +1,24 @@
 import enums.UnitInput;
 import enums.UnitOutput;
-import javafx.event.ActionEvent;
-import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.Border;
+import javafx.scene.control.*;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class InputOverviewController {
 
+    private static final Pattern DECIMAL_INPUT = Pattern.compile("[0-9]*(?:\\.[0-9]*)?");
+    private static final Pattern SIGNED_DECIMAL_INPUT = Pattern.compile("-?" + DECIMAL_INPUT.pattern());
+
     private final UnitInput[] unitInput = new UnitInput[2];
     private final UnitOutput[] unitOutput = new UnitOutput[7];
-    private String path;
-    private final double[] inputMaxM = new double[2];
-    private final double[] inputVelocity = new double[4];
-    private final double[] inputAltitude = new double[3];
-
-    // значения по умолчанию: 0 - Vd; 1 - Vc; 2 - Va; 3 - Vs; 4 - Md; 5 - Mc; 6 - Hmin; 7 - Hmax; 8 - dH
-    private String[] defaultValue = new String[] {"172.7777", "158.3333", "135.2777", "55.8333", "0.88", "0.82", "-300.0", "12200.0", "1.0"};
 
     @FXML
     private ComboBox<String> comboBox1;
@@ -38,6 +34,8 @@ public class InputOverviewController {
     private ComboBox<String> comboBox6;
     @FXML
     private Button button1;
+    @FXML
+    private Label saveStatus;
     @FXML
     private TextField textField1;   // Vd
     @FXML
@@ -58,6 +56,10 @@ public class InputOverviewController {
     private TextField textField9;   // dH
 
 
+    /**
+     * Настраивает единицы измерения и фильтры числовых полей.
+     * Кнопка расчёта доступна, когда заполнены все поля.
+     */
     @FXML
     protected void initialize() {
 
@@ -109,52 +111,38 @@ public class InputOverviewController {
         this.comboBox5.getSelectionModel().select(0);   // значение по умолчанию - Па
         this.comboBox6.getSelectionModel().select(0);   // значение по уполчанию - К
 
-        // значения единиц измерения по умолчанию
-        this.unitInput[0] = UnitInput.Meter;                                                                                 // высота
-        this.unitInput[1] = UnitInput.MeterPerSecond;                                                                        // скорость
+        onComboBoxChanged();
 
-        this.unitOutput[0] = UnitOutput.Meter;                                                                               // высота метрическая
-        this.unitOutput[1] = UnitOutput.Foot;                                                                                // высота имперская
-        this.unitOutput[2] = UnitOutput.MeterPerSecond;                                                                      // скорость
-        this.unitOutput[3] = UnitOutput.KgPerM3;                                                                             // плотность
-        this.unitOutput[4] = UnitOutput.Pa;                                                                                  // давление
-        this.unitOutput[5] = UnitOutput.Kelvin;                                                                              // температура
-        this.unitOutput[6] = UnitOutput.Dimensionless_Mach;                                                                  // безразмерный мах
+        // Фиксированные единицы измерения результата.
+        this.unitOutput[1] = UnitOutput.Foot;
+        this.unitOutput[3] = UnitOutput.KgPerM3;
+        this.unitOutput[6] = UnitOutput.Dimensionless_Mach;
 
-        // значения скоростей и высот
-        this.textField1.clear();
-        this.textField1.appendText(defaultValue[0]);
-        this.inputVelocity[0] = Double.parseDouble(textField1.getText());
-        this.textField2.clear();
-        this.textField2.appendText(defaultValue[1]);
-        this.inputVelocity[1] = Double.parseDouble(textField2.getText());
-        this.textField3.clear();
-        this.textField3.appendText(defaultValue[2]);
-        this.inputVelocity[2] = Double.parseDouble(textField3.getText());
-        this.textField4.clear();
-        this.textField4.appendText(defaultValue[3]);
-        this.inputVelocity[3] = Double.parseDouble(textField4.getText());
-        this.textField5.clear();
-        this.textField5.appendText(defaultValue[4]);
-        this.inputMaxM[0] = Double.parseDouble(textField5.getText());
-        this.textField6.clear();
-        this.textField6.appendText(defaultValue[5]);
-        this.inputMaxM[1] = Double.parseDouble(textField6.getText());
-        this.textField7.clear();
-        this.textField7.appendText(defaultValue[6]);
-        this.inputAltitude[0] = Double.parseDouble(textField7.getText());
-        this.textField8.clear();
-        this.textField8.appendText(defaultValue[7]);
-        this.inputAltitude[1] = Double.parseDouble(textField8.getText());
-        this.textField9.clear();
-        this.textField9.appendText(defaultValue[8]);
-        this.inputAltitude[2] = Double.parseDouble(textField9.getText());
+        TextField[] numericFields = {textField1, textField2, textField3, textField4, textField5,
+                textField6, textField7, textField8, textField9};
+        for (TextField field : numericFields) {
+            Pattern inputPattern = field == textField7 ? SIGNED_DECIMAL_INPUT : DECIMAL_INPUT;
+            field.setTextFormatter(new TextFormatter<>(change -> filterDecimalInput(change, inputPattern)));
+        }
 
-        this.path = "c:\\Result.xlsx";
-
+        Observable[] fieldLengths = Arrays.stream(numericFields)
+                .map(TextField::lengthProperty)
+                .toArray(Observable[]::new);
+        button1.disableProperty().bind(Bindings.createBooleanBinding(
+                () -> Arrays.stream(numericFields).anyMatch(field -> field.getLength() == 0), fieldLengths));
     }
 
-    // изменение позиций в комбобоксах
+    /**
+     * Заменяет запятую точкой и пропускает правку, если итоговый текст соответствует формату поля.
+     */
+    private TextFormatter.Change filterDecimalInput(TextFormatter.Change change, Pattern inputPattern) {
+        change.setText(change.getText().replace(',', '.'));
+        return inputPattern.matcher(change.getControlNewText()).matches() ? change : null;
+    }
+
+    /**
+     * Считывает выбранные в форме единицы измерения для исходных данных и результатов.
+     */
     public void onComboBoxChanged() {
 
         // единицы измерения исходных данных
@@ -253,232 +241,76 @@ public class InputOverviewController {
         }
     }
 
-    public void onTextField1Changed() {
-
-        String initialText = this.textField1.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField1.getText().length() != 0) {
-            this.textField1.clear();
-            this.textField1.appendText(finalText.toString());
-            this.inputVelocity[0] = Double.parseDouble(textField1.getText());
+    /**
+     * Проверяет поля и предлагает сохранить диаграмму, начиная с рабочего стола.
+     */
+    public void onButtonClick() {
+        saveStatus.setText("");
+        double[] inputVelocity;
+        double[] inputMaxM;
+        double[] inputAltitude;
+        try {
+            inputVelocity = readNumbers(textField1, textField2, textField3, textField4);
+            inputMaxM = readNumbers(textField5, textField6);
+            inputAltitude = readNumbers(textField7, textField8, textField9);
+        } catch (NumberFormatException ex) {
+            new Alert(Alert.AlertType.ERROR, "Проверьте числовые значения во всех полях ввода.").showAndWait();
+            return;
         }
 
-        //Alert alert = new Alert(Alert.AlertType.ERROR, "Ввод недопустимого символа", ButtonType.OK);
-        //alert.showAndWait();
-    }
-
-    public void onTextField2Changed() {
-
-        String initialText = this.textField2.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField2.getText().length() != 0) {
-            this.textField2.clear();
-            this.textField2.appendText(finalText.toString());
-            this.inputVelocity[1] = Double.parseDouble(textField2.getText());
-        }
-
-    }
-
-    public void onTextField3Changed() {
-
-        String initialText = this.textField3.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField3.getText().length() != 0) {
-            this.textField3.clear();
-            this.textField3.appendText(finalText.toString());
-            this.inputVelocity[2] = Double.parseDouble(textField3.getText());
-        }
-
-    }
-
-    public void onTextField4Changed() {
-
-        String initialText = this.textField4.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField4.getText().length() != 0) {
-            this.textField4.clear();
-            this.textField4.appendText(finalText.toString());
-            this.inputVelocity[3] = Double.parseDouble(textField4.getText());
-        }
-    }
-
-    public void onTextField5Changed() {
-
-        String initialText = this.textField5.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField5.getText().length() != 0) {
-            this.textField5.clear();
-            this.textField5.appendText(finalText.toString());
-            this.inputMaxM[0] = Double.parseDouble(this.textField5.getText());
-        }
-    }
-
-    public void onTextField6Changed() {
-
-        String initialText = this.textField6.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField6.getText().length() != 0) {
-            this.textField6.clear();
-            this.textField6.appendText(finalText.toString());
-            this.inputMaxM[1] = Double.parseDouble(this.textField6.getText());
-        }
-    }
-
-    public void onTextField7Changed() {
-
-        String initialText = this.textField7.getText();
-        StringBuilder finalText = getCorrectText(initialText, true);
-
-        if (this.textField7.getText().length() != 0) {
-            this.textField7.clear();
-            this.textField7.appendText(finalText.toString());
-            this.inputAltitude[0] = Double.parseDouble(this.textField7.getText());
-        }
-
-    }
-
-    public void onTextField8Changed() {
-
-        String initialText = this.textField8.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField8.getText().length() != 0) {
-            this.textField8.clear();
-            this.textField8.appendText(finalText.toString());
-            this.inputAltitude[1] = Double.parseDouble(this.textField8.getText());
-        }
-    }
-
-    public void onTextField9Changed(KeyEvent event) {
-
-        String initialText = this.textField9.getText();
-        StringBuilder finalText = getCorrectText(initialText, false);
-
-        if (this.textField9.getText().length() != 0) {
-            this.textField9.clear();
-            this.textField9.appendText(finalText.toString());
-            this.inputAltitude[2] = Double.parseDouble(this.textField9.getText());
-        }
-    }
-
-    public void onButtonClick(ActionEvent event) throws IOException {
-
-        Stage stage = new Stage();
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select directory for save");
         fileChooser.setInitialFileName("Result");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel", "*.xlsx"));
-        fileChooser.setInitialDirectory(new File("C:\\"));
-        File file = fileChooser.showSaveDialog(stage);
-        this.path = file.getAbsolutePath();
-
-        BackEnd back = new BackEnd(this.inputVelocity, this.inputMaxM, this.inputAltitude, this.unitInput, this.unitOutput, this.path);
-        back.back();
-
-
+        File desktop = FileSystemView.getFileSystemView().getHomeDirectory();
+        if (desktop != null && desktop.isDirectory()) {
+            fileChooser.setInitialDirectory(desktop);
+        }
+        File file = fileChooser.showSaveDialog(button1.getScene().getWindow());
+        saveDiagram(file, inputVelocity, inputMaxM, inputAltitude);
     }
 
-    private StringBuilder getCorrectText (String initialText, boolean keyNegativeValue) {
+    /**
+     * Запускает расчёт и экспорт, затем отображает итог записи выбранного файла.
+     */
+    private void saveDiagram(File file, double[] inputVelocity, double[] inputMaxM, double[] inputAltitude) {
+        if (file == null) {
+            showSaveStatus(false);
+            return;
+        }
 
-        StringBuilder finalText = new StringBuilder();
-        char ch;
+        try {
+            BackEnd back = new BackEnd(inputVelocity, inputMaxM, inputAltitude, unitInput, unitOutput, file.getAbsolutePath());
+            back.back();
+            showSaveStatus(true);
+        } catch (IOException | RuntimeException ex) {
+            showSaveStatus(false);
+            ex.printStackTrace();
+        }
+    }
 
-        if ((!isValidateDot(initialText)) || (!isValidateABC(initialText, keyNegativeValue)))  {
+    /**
+     * Показывает сообщение о результате сохранения рядом с кнопкой расчёта.
+     */
+    private void showSaveStatus(boolean saved) {
+        saveStatus.setText(saved ? "Файл сохранен" : "Ошибка при сохранении файла");
+        saveStatus.setTextFill(saved ? Color.DARKGREEN : Color.FIREBRICK);
+    }
 
-            for (int i = 0; i <= initialText.length() - 2; i++) {
-
-                ch = initialText.charAt(i);
-                finalText.append(ch);
+    /**
+     * Преобразует текст полей в массив конечных чисел в порядке передачи полей.
+     *
+     * @throws NumberFormatException если текст поля нельзя преобразовать в конечное число
+     */
+    private double[] readNumbers(TextField... fields) {
+        double[] numbers = new double[fields.length];
+        for (int i = 0; i < fields.length; i++) {
+            double number = Double.parseDouble(fields[i].getText());
+            if (!Double.isFinite(number)) {
+                throw new NumberFormatException();
             }
+            numbers[i] = number;
         }
-        else {
-            finalText.append(initialText);
-        }
-
-        return finalText;
+        return numbers;
     }
-
-    private boolean isValidateABC (String text, boolean keyNegativeValue) {
-
-        boolean validate = false;
-        char ch;
-
-        if (!keyNegativeValue) {
-            for (int i = 0; i <= text.length() - 1 ; i++) {
-
-                ch = text.charAt(i);
-                validate = (ch == '.') || (ch >= '0' && ch <= '9');
-
-            }
-        }
-
-        if (keyNegativeValue) {
-            for (int i = 0; i <= text.length() - 1 ; i++) {
-
-                ch = text.charAt(i);
-                validate = (ch == '.') || (ch >= '0' && ch <= '9') || (ch == '-');
-
-            }
-        }
-        return validate;
-    }
-
-
-    private boolean isValidateDot (String text){
-
-        boolean validate = false;
-        char ch;
-        int inc = 0;
-
-        for (int i = 0; i <= text.length() - 1 ; i++) {
-
-            ch = text.charAt(i);
-
-            if (ch == '.') {
-
-                inc++;
-            }
-        }
-
-        if (inc <= 1) {
-
-            validate = true;
-        }
-
-        return validate;
-    }
-
-    private boolean isValidateNegative (String value){
-
-        return !(Double.parseDouble(value) <= 0);
-    }
-
-
-
-
-
-
-
 }
-
-
-
-
-/*
-    private boolean isValid(char ch) {
-
-        return (ch >= '0' && ch <= '9') || (ch == '-') || (ch == '.');
-    }
-
-
-    private boolean validate(String text) {
-
-        return text.matches("[0-9]");
-    }
- */

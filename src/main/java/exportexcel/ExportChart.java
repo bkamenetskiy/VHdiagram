@@ -2,6 +2,9 @@ package exportexcel;
 
 import enums.UnitOutput;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xddf.usermodel.XDDFColor;
+import org.apache.poi.xddf.usermodel.XDDFLineProperties;
+import org.apache.poi.xddf.usermodel.XDDFSolidFillProperties;
 import org.apache.poi.xddf.usermodel.chart.*;
 import org.apache.poi.xssf.usermodel.XSSFChart;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
@@ -11,6 +14,9 @@ import java.util.ArrayList;
 
 public class ExportChart {
 
+    /**
+     * Строит графики высоты от числа Маха и истинной скорости по данным листа Excel.
+     */
     public void Chart (XSSFSheet sheet, ArrayList<int[]> listInternalOffsets, int globalVerticalOffset,
                        int localVerticalOffset, int[] rowEndIndex, ArrayList<double[][]> listData, UnitOutput[] unitOutput) {
 
@@ -28,94 +34,116 @@ public class ExportChart {
         XSSFClientAnchor anchorVtas = drawingVtas.createAnchor(0, 0, 0, 0, size[2] + size[4], size[3], size[2]+size[0] + size[4], size[3]+size[1]); // создание прямоугольника по координатам двух точек - верхней левой и правой нижней
         XSSFChart chartVtas = drawingVtas.createChart(anchorVtas);                                                                  // добавление в лабуду графика
 
-        // создание легенды для Маха
-        XDDFChartLegend legendMach = chartMach.getOrAddLegend();
-        legendMach.setPosition(LegendPosition.RIGHT);
-        // создание легенды для Vtas
-        XDDFChartLegend legendVtas = chartVtas.getOrAddLegend();
-        legendVtas.setPosition(LegendPosition.RIGHT);
+        XDDFScatterChartData dataMach = createScatterData(chartMach, "M", "0.0", unitOutput[0]);
+        XDDFScatterChartData dataVtas = createScatterData(chartVtas, "Vtas, " + unitOutput[2].getUnitName(),
+                "0", unitOutput[0]);
 
-        // настройка осей для Маха
-        XDDFCategoryAxis bottomAxisMach = chartMach.createCategoryAxis(AxisPosition.BOTTOM);                            // положение горизонтальной оси
-        bottomAxisMach.setTitle("M");                                                                                   // название горизонтальной оси
-        bottomAxisMach.setCrosses(AxisCrosses.AUTO_ZERO);                                                               // "0" - автоматическое
-        XDDFValueAxis leftAxisMach = chartMach.createValueAxis(AxisPosition.LEFT);                                      // положение вертикальной оси
-        leftAxisMach.setTitle("H, " + unitOutput[0].getUnitName());                                                     // название вертикальной оси
-        leftAxisMach.setCrosses(AxisCrosses.AUTO_ZERO);                                                                 // "0" - автоматическое
-        // настройка осей для Vtas
-        XDDFCategoryAxis bottomAxisVtas = chartVtas.createCategoryAxis(AxisPosition.BOTTOM);                            // положение горизонтальной оси
-        bottomAxisVtas.setTitle("Vtas, " + unitOutput[2].getUnitName());                                                // название горизонтальной оси
-        bottomAxisVtas.setCrosses(AxisCrosses.AUTO_ZERO);                                                               // "0" - автоматическое
-        XDDFValueAxis leftAxisVtas = chartVtas.createValueAxis(AxisPosition.LEFT);                                      // положение вертикальной оси
-        leftAxisVtas.setTitle("H, " + unitOutput[0].getUnitName());                                                     // название вертикальной оси
-        leftAxisVtas.setCrosses(AxisCrosses.AUTO_ZERO);                                                                 // "0" - автоматическое
-
-        // максимальное и минимальное значение
-        //leftAxisMach.setMaximum(12.2);
-        //leftAxisMach.setMinimum(-0.3);
-
-        // индекс первой строки
         int firstRow = globalVerticalOffset + localVerticalOffset;
-        int offset = 0;
+        int altitudeColumn = listInternalOffsets.get(0)[0];
+        int[] velocityOffsets = listInternalOffsets.get(2);
+        // Первый блок скоростей начинается после высоты и атмосферы. Вспомогательная высота пропускается.
+        int velocityColumn = listData.get(0)[0].length + listData.get(1)[0].length - 1;
 
-        // вертикальная ось
-        XDDFDataSource <Double>[] dataSourceMach = new XDDFDataSource[listData.size()];
-        XDDFDataSource <Double>[] dataSourceVtas = new XDDFDataSource[listData.size()];
-        // горизонтальная ось
-        XDDFNumericalDataSource <Double>[] numericalDataSourceMach = new XDDFNumericalDataSource[listData.size()];
-        XDDFNumericalDataSource <Double>[] numericalDataSourceVtas = new XDDFNumericalDataSource[listData.size()];
-        // набор данных
-        XDDFLineChartData dataMach = (XDDFLineChartData)chartMach.createData(ChartTypes.LINE, bottomAxisMach, leftAxisMach);
-        XDDFLineChartData dataVtas = (XDDFLineChartData)chartVtas.createData(ChartTypes.LINE, bottomAxisVtas, leftAxisVtas);
-        // линия на графике
-        XDDFLineChartData.Series seriesMach;
-        XDDFLineChartData.Series seriesVtas;
+        for (int listDataIndex = 2; listDataIndex < listData.size(); listDataIndex++) {
+            int lastRow = firstRow + rowEndIndex[listDataIndex - 2];
+            int machColumn = velocityColumn + velocityOffsets[1];
+            int vtasColumn = velocityColumn + velocityOffsets[2];
 
-        // выбор данных
-        for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
+            XDDFNumericalDataSource<Double> altitudes = XDDFDataSourcesFactory.fromNumericCellRange(sheet,
+                    new CellRangeAddress(firstRow, lastRow, altitudeColumn, altitudeColumn));
+            XDDFNumericalDataSource<Double> mach = XDDFDataSourcesFactory.fromNumericCellRange(sheet,
+                    new CellRangeAddress(firstRow, lastRow, machColumn, machColumn));
+            XDDFNumericalDataSource<Double> vtas = XDDFDataSourcesFactory.fromNumericCellRange(sheet,
+                    new CellRangeAddress(firstRow, lastRow, vtasColumn, vtasColumn));
 
-            if (listDataIndex == 0) {
-                offset = 0;
-            }
-            else {
-                offset = listData.get(listDataIndex - 1)[0].length + offset;
-            }
-
-            if (listDataIndex >= 2) {
-
-                // вертикальная ось число Маха
-                dataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        offset - 1 + listInternalOffsets.get(2)[1], offset - 1 + listInternalOffsets.get(2)[1]));
-                // вертикальная ось Vtas
-                dataSourceVtas[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        offset - 1 + listInternalOffsets.get(2)[2], offset - 1 + listInternalOffsets.get(2)[2]));
-
-                // горизонтальная ось число Маха
-                numericalDataSourceMach[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        listInternalOffsets.get(0)[0], listInternalOffsets.get(0)[0]));
-                // горизонтальная ось число Vtas
-                numericalDataSourceVtas[listDataIndex] = XDDFDataSourcesFactory.fromNumericCellRange(sheet, new CellRangeAddress(firstRow, firstRow + rowEndIndex[listDataIndex - 2],
-                        listInternalOffsets.get(0)[0], listInternalOffsets.get(0)[0]));
-
-                // набор данных для числа Маха
-                seriesMach = (XDDFLineChartData.Series)dataMach.addSeries(dataSourceMach[listDataIndex], numericalDataSourceMach[listDataIndex]);
-                seriesMach.setTitle(getTitleMach(listDataIndex), null);
-                seriesMach.setSmooth(true);
-                seriesMach.setMarkerSize((short)6);
-                seriesMach.setMarkerStyle(MarkerStyle.TRIANGLE);
-
-                // набор данных для Vtas
-                seriesVtas = (XDDFLineChartData.Series)dataVtas.addSeries(dataSourceVtas[listDataIndex], numericalDataSourceVtas[listDataIndex]);
-                seriesVtas.setTitle(getTitleVtas(listDataIndex), null);
-                seriesVtas.setSmooth(true);
-                seriesVtas.setMarkerSize((short)6);
-                seriesVtas.setMarkerStyle(MarkerStyle.TRIANGLE);
-            }
+            addSmoothSeries(dataMach, mach, altitudes, getTitleMach(listDataIndex));
+            addSmoothSeries(dataVtas, vtas, altitudes, getTitleVtas(listDataIndex));
+            velocityColumn += listData.get(listDataIndex)[0].length;
         }
 
         chartMach.plot(dataMach);
         chartVtas.plot(dataVtas);
 
+    }
+
+    /**
+     * Настраивает область построения, числовые оси, сетку и стиль точечной диаграммы.
+     * Задаёт формат подписей осей независимо от формата ячеек.
+     */
+    private XDDFScatterChartData createScatterData(XSSFChart chart, String xTitle, String xNumberFormat, UnitOutput altitudeUnit) {
+        configureChartLayout(chart);
+        chart.displayBlanksAs(DisplayBlanks.GAP);
+
+        XDDFValueAxis xAxis = chart.createValueAxis(AxisPosition.BOTTOM);
+        xAxis.setTitle(xTitle);
+        xAxis.setNumberFormat(xNumberFormat);
+        styleAxis(xAxis);
+
+        XDDFValueAxis yAxis = chart.createValueAxis(AxisPosition.LEFT);
+        yAxis.setTitle("H, " + altitudeUnit.getUnitName());
+        yAxis.setNumberFormat("0");
+        styleAxis(yAxis);
+
+        for (var axis : chart.getCTChart().getPlotArea().getValAxList()) {
+            axis.getNumFmt().setSourceLinked(false);
+        }
+
+        XDDFScatterChartData data = (XDDFScatterChartData) chart.createData(ChartTypes.SCATTER, xAxis, yAxis);
+        data.setStyle(ScatterStyle.SMOOTH);
+        return data;
+    }
+
+    /**
+     * Настраивает прямоугольное полотно, область построения и легенду у правого края.
+     */
+    private void configureChartLayout(XSSFChart chart) {
+        chart.getCTChartSpace().addNewRoundedCorners().setVal(false);
+
+        XDDFManualLayout plotLayout = chart.getOrAddManualLayout();
+        plotLayout.setTarget(LayoutTarget.INNER);
+        plotLayout.setXMode(LayoutMode.EDGE);
+        plotLayout.setYMode(LayoutMode.EDGE);
+        plotLayout.setWidthMode(LayoutMode.FACTOR);
+        plotLayout.setHeightMode(LayoutMode.FACTOR);
+        plotLayout.setX(0.11);
+        plotLayout.setY(0.04);
+        plotLayout.setWidthRatio(0.87);
+        plotLayout.setHeightRatio(0.87);
+
+        XDDFChartLegend legend = chart.getOrAddLegend();
+        legend.setPosition(LegendPosition.RIGHT);
+        legend.setOverlay(true);
+        XDDFManualLayout legendLayout = legend.getOrAddManualLayout();
+        legendLayout.setXMode(LayoutMode.EDGE);
+        legendLayout.setYMode(LayoutMode.EDGE);
+        legendLayout.setX(0.905);
+        legendLayout.setY(0.60);
+    }
+
+    /**
+     * Оформляет линию оси толщиной 2 пт и добавляет основные линии сетки толщиной 0,5 пт.
+     */
+    private void styleAxis(XDDFValueAxis axis) {
+        XDDFColor axisColor = XDDFColor.from(new byte[]{(byte) 0x80, (byte) 0x80, (byte) 0x80});
+        XDDFLineProperties axisLine = new XDDFLineProperties(new XDDFSolidFillProperties(axisColor));
+        axisLine.setWidth(2.0);
+        axis.getOrAddShapeProperties().setLineProperties(axisLine);
+
+        XDDFColor gridColor = XDDFColor.from(new byte[]{(byte) 0xA5, (byte) 0xA5, (byte) 0xA5});
+        XDDFLineProperties gridLine = new XDDFLineProperties(new XDDFSolidFillProperties(gridColor));
+        gridLine.setWidth(0.5);
+        axis.getOrAddMajorGridProperties().setLineProperties(gridLine);
+    }
+
+    /**
+     * Добавляет ряд с высотой по оси Y и сглаженной линией без маркеров.
+     */
+    private void addSmoothSeries(XDDFScatterChartData data, XDDFNumericalDataSource<Double> xValues,
+                                 XDDFNumericalDataSource<Double> altitudes, String title) {
+        XDDFScatterChartData.Series series = (XDDFScatterChartData.Series) data.addSeries(xValues, altitudes);
+        series.setTitle(title, null);
+        series.setSmooth(true);
+        series.setMarkerStyle(MarkerStyle.NONE);
     }
 
     private String getTitleMach(int name) {

@@ -9,8 +9,5 @@
         <module name="VHdiagram" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="VHdiagram" target="11" />
-    </bytecodeTargetLevel>
   </component>
 </project>

@@ -8,8 +8,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import solvers.SolverAtmosphere;
 import solvers.SolverUnitConverter;
 import solvers.SolverVelocity;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 public class Engine {
@@ -39,7 +43,6 @@ public class Engine {
     // вспомогательные переменные
     private int rowCount;                                                                                               // размерность массива
     private int[] rowEndIndex = new int[] {0, 0, 0, 0};                                                                 // счетчик индексов строк, на которых остановился экспорт скорости
-    private XSSFWorkbook dataBook;                                                                                      // для перекидывания книги между методами
 
     // исходные данные после конвертации
     private double[] inputVelocityConvert;
@@ -120,11 +123,38 @@ public class Engine {
     }
 
 
-    // экспорт в excel
-    protected void exportExcel() {
+    /**
+     * Формирует книгу Excel во временном файле и переносит её по выбранному пути после завершения записи.
+     *
+     * @throws IOException если книгу не удалось сохранить
+     */
+    protected void exportExcel(String path) throws IOException {
+        Path destination = Path.of(path).toAbsolutePath();
+        Path temporary = Files.createTempFile(destination.getParent(), "vhdiagram-", ".tmp");
+        boolean saved = false;
+        try {
+            try (XSSFWorkbook dataBook = new XSSFWorkbook(); OutputStream out = Files.newOutputStream(temporary)) {
+                populateWorkbook(dataBook);
+                dataBook.write(out);
+            }
 
-        // все что нужно для экспорта в эксель
-        XSSFWorkbook dataBook = new XSSFWorkbook();                                                                     // создание книги
+            try {
+                Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.move(temporary, destination, StandardCopyOption.REPLACE_EXISTING);
+            }
+            saved = true;
+        } finally {
+            if (!saved) {
+                Files.deleteIfExists(temporary);
+            }
+        }
+    }
+
+    /**
+     * Добавляет в книгу лист с таблицей расчётных данных и двумя диаграммами.
+     */
+    private void populateWorkbook(XSSFWorkbook dataBook) {
         XSSFSheet sheet = dataBook.createSheet("V-H");                                                         // создание листа с названием V-H
 
         // вспомогательные переменные
@@ -143,27 +173,7 @@ public class Engine {
         // отрисовка графиков
         ExportChart chart = new ExportChart();
         chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex, this.listData, this.unitOutput);
-
-        this.dataBook = dataBook;
-
     }
-
-    // запись файла на диск
-    protected void writeFile (String path) {
-
-        XSSFWorkbook file = this.dataBook;
-
-        try {
-            FileOutputStream out = new FileOutputStream(path);
-            file.write(out);
-            out.close();
-            file.close();
-            System.out.println("Your excel file has been generated!");
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
-
-      }
 
     // конвертация исходных данных в СИ
     private void getInputUnitConvert() {
