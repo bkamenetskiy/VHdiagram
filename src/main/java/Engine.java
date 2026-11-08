@@ -44,22 +44,24 @@ public class Engine {
     private int rowCount;                                                                                               // размерность массива
     private int[] rowEndIndex = new int[] {0, 0, 0, 0};                                                                 // счетчик индексов строк, на которых остановился экспорт скорости
 
-    // исходные данные после конвертации
-    private double[] inputVelocityConvert;
-    private double[] inputAltitudeConvert;
-
     // конвертер единиц измерения
     SolverUnitConverter unitConverter = new SolverUnitConverter();                                                      // конвертер единиц измерения
 
-    // расчет скоростей
+    /**
+     * Рассчитывает параметры атмосферы и скорости для каждой высоты с учётом предельных чисел Маха.
+     */
     protected void dataArray (double[] inputMaxM) {
 
         // все что нужно для рассчетов
         SolverVelocity solverVelocity = new SolverVelocity();                                                           // решатели
         SolverAtmosphere solverAtmosphere = new SolverAtmosphere();
 
-        // сконвертировали исходные данные в СИ
-        getInputUnitConvert();
+        // Переводим исходные скорости в м/с.
+        UnitInput velocityUnit = this.unitInput[1];
+        double[] velocityInSi = new double[this.inputVelocity.length];
+        for (int i = 0; i < velocityInSi.length; i++) {
+            velocityInSi[i] = this.unitConverter.getUnitInputToSI(velocityUnit, this.inputVelocity[i]);
+        }
 
 
         // Определение размерности маасива.
@@ -102,13 +104,13 @@ public class Engine {
         // записали атмосферу
         solverAtmosphere.getAtmParam(this.listData.get(1), this.listData.get(0), this.listInternalOffsets.get(0), this.listInternalOffsets.get(1));        // аргументы метода: 0 - массив в который пишутся параметры; 1 - параметры, необходимые для расчетов
         // записали скорость Vd
-        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[0], inputMaxM[0], this.settingLimitType[0], blank);
+        solverVelocity.getVelocity(this.listData.get(2), this.listData.get(1), this.listInternalOffsets, velocityInSi[0], inputMaxM[0], this.settingLimitType[0], blank);
         // записали скорость Vc
-        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[1], inputMaxM[1], this.settingLimitType[1], blank);
+        solverVelocity.getVelocity(this.listData.get(3), this.listData.get(1), this.listInternalOffsets, velocityInSi[1], inputMaxM[1], this.settingLimitType[1], blank);
         // записали скорость Va
-        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[2], inputMaxM[1], this.settingLimitType[2], dataVelocityVc);
+        solverVelocity.getVelocity(this.listData.get(4), this.listData.get(1), this.listInternalOffsets, velocityInSi[2], inputMaxM[1], this.settingLimitType[2], dataVelocityVc);
         // записали скорость Vs
-        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, this.inputVelocityConvert[3], -1.0f, this.settingLimitType[3], blank);
+        solverVelocity.getVelocity(this.listData.get(5), this.listData.get(1), this.listInternalOffsets, velocityInSi[3], -1.0f, this.settingLimitType[3], blank);
 
 
         // выводим в консоль
@@ -174,30 +176,5 @@ public class Engine {
         ExportChart chart = new ExportChart();
         chart.Chart(sheet, listInternalOffsets, globalVerticalOffset, localVerticalOffset, this.rowEndIndex, this.listData, this.unitOutput);
     }
-
-    // конвертация исходных данных в СИ
-    private void getInputUnitConvert() {
-
-        // вспомогательные переменные
-        double[] altitude = new double[this.inputAltitude.length];
-        double[] velocity = new double[this.inputVelocity.length];
-
-        // скорости
-        for (int i = 0; i <= velocity.length - 1; i++) {
-
-            velocity[i] = this.unitConverter.getUnitInputToSI(this.unitInput[1], this.inputVelocity[i]);
-        }
-
-        // высоты
-        for (int i = 0; i <= altitude.length - 1; i++) {
-
-            altitude[i] = this.unitConverter.getUnitInputToSI(this.unitInput[0], this.inputAltitude[i]);
-        }
-
-        this.inputAltitudeConvert = altitude;
-        this.inputVelocityConvert = velocity;
-    }
-
-
 
 }

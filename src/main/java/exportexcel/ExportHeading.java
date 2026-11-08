@@ -38,15 +38,12 @@ public class ExportHeading {
             for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
 
                 // рассчитываем смещения
-                int v = 0;
                 if (listDataIndex == 0) {
                     offset = 0;
-                    v = 0;
                 }
 
                 if (listDataIndex >= 1) {
                     offset = offset + listData.get(listDataIndex - 1)[0].length;
-                    v = offset - 1 ;
                 }
 
                 length = listData.get(listDataIndex)[0].length;

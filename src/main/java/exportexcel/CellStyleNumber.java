@@ -34,7 +34,7 @@ class CellStyleNumber {
             style = this.styleLength;
         }
 
-        if ((unit == UnitOutput.Foot) || (unit == UnitOutput.Inch)) {
+        if (unit == UnitOutput.Foot) {
 
             style = this.styleLength_IS;
         }

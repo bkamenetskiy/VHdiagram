@@ -4,9 +4,9 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javax.swing.filechooser.FileSystemView;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,6 +16,7 @@ public class InputOverviewController {
 
     private static final Pattern DECIMAL_INPUT = Pattern.compile("[0-9]*(?:\\.[0-9]*)?");
     private static final Pattern SIGNED_DECIMAL_INPUT = Pattern.compile("-?" + DECIMAL_INPUT.pattern());
+    private static final String SAVE_ERROR = "Ошибка при сохранении файла";
 
     private final UnitInput[] unitInput = new UnitInput[2];
     private final UnitOutput[] unitOutput = new UnitOutput[7];
@@ -36,6 +37,8 @@ public class InputOverviewController {
     private Button button1;
     @FXML
     private Label saveStatus;
+    @FXML
+    private Hyperlink savedFileLink;
     @FXML
     private TextField textField1;   // Vd
     @FXML
@@ -130,6 +133,7 @@ public class InputOverviewController {
                 .toArray(Observable[]::new);
         button1.disableProperty().bind(Bindings.createBooleanBinding(
                 () -> Arrays.stream(numericFields).anyMatch(field -> field.getLength() == 0), fieldLengths));
+        savedFileLink.managedProperty().bind(savedFileLink.visibleProperty());
     }
 
     /**
@@ -245,7 +249,7 @@ public class InputOverviewController {
      * Проверяет поля и предлагает сохранить диаграмму, начиная с рабочего стола.
      */
     public void onButtonClick() {
-        saveStatus.setText("");
+        showSaveStatus(null, "");
         double[] inputVelocity;
         double[] inputMaxM;
         double[] inputAltitude;
@@ -275,26 +279,39 @@ public class InputOverviewController {
      */
     private void saveDiagram(File file, double[] inputVelocity, double[] inputMaxM, double[] inputAltitude) {
         if (file == null) {
-            showSaveStatus(false);
+            showSaveStatus(null, SAVE_ERROR);
             return;
         }
 
         try {
             BackEnd back = new BackEnd(inputVelocity, inputMaxM, inputAltitude, unitInput, unitOutput, file.getAbsolutePath());
             back.back();
-            showSaveStatus(true);
+            showSaveStatus(file, "");
         } catch (IOException | RuntimeException ex) {
-            showSaveStatus(false);
+            showSaveStatus(null, SAVE_ERROR);
             ex.printStackTrace();
         }
     }
 
     /**
-     * Показывает сообщение о результате сохранения рядом с кнопкой расчёта.
+     * Показывает ссылку на сохранённый файл или текст статуса рядом с кнопкой расчёта.
      */
-    private void showSaveStatus(boolean saved) {
-        saveStatus.setText(saved ? "Файл сохранен" : "Ошибка при сохранении файла");
-        saveStatus.setTextFill(saved ? Color.DARKGREEN : Color.FIREBRICK);
+    private void showSaveStatus(File savedFile, String message) {
+        saveStatus.setText(message);
+        savedFileLink.setOnAction(savedFile == null ? null : event -> openSavedFile(savedFile));
+        savedFileLink.setVisited(false);
+        savedFileLink.setVisible(savedFile != null);
+    }
+
+    /**
+     * Открывает сохранённую книгу в приложении, выбранном системой для файлов Excel.
+     */
+    private void openSavedFile(File file) {
+        try {
+            Desktop.getDesktop().open(file);
+        } catch (IOException | IllegalArgumentException | UnsupportedOperationException | SecurityException ex) {
+            new Alert(Alert.AlertType.ERROR, "Не удалось открыть сохраненный файл.").showAndWait();
+        }
     }
 
     /**
