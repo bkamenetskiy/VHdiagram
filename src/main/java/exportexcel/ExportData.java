@@ -12,6 +12,7 @@ public class ExportData {
 
     /**
      * Записывает расчётные данные в выбранных единицах и запоминает последние строки рядов скоростей.
+     * Номера столбцов, единицы и стили подготавливаются перед записью строк.
      */
     public void exportData(XSSFWorkbook dataBook, XSSFSheet sheet, ArrayList<double[][]> listData, ArrayList<int[]> listInternalOffsets,
                            int globalVerticalOffset, int localVerticalOffset, double outputAltitudeInc, int rowCount, int[] rowEndIndex,
@@ -25,13 +26,31 @@ public class ExportData {
         // вспомогательные переменные
         int rowDataArray = 0;                                                                                           // счетчик строк в массивах данных
         int rowSheetInc = 0;                                                                                            // счетчик строк в листе excel
-        int offset = 0;                                                                                                 // смещение блоков относительно друг друга
-        double currentValue;                                                                                            // вспомогательная переменная для конвертации единиц измерения
-        UnitOutput unit;                                                                                                // хранит тип единицы измерения
-        CellStyle style;                                                                                                // хранит стиль ячейки
-
         // создание стилей ячеек
         cellStyleNumber.createCellStyle(dataBook, unitOutput);
+
+        // Параметры столбцов хранятся по индексу блока и номеру столбца внутри него.
+        int blockCount = listData.size(); // Количество блоков расчётных данных.
+        int[][] sheetColumns = new int[blockCount][]; // Номера столбцов на листе Excel.
+        UnitOutput[][] columnUnits = new UnitOutput[blockCount][]; // Единицы измерения для экспорта.
+        CellStyle[][] columnStyles = new CellStyle[blockCount][]; // Стили ячеек каждого столбца.
+        int blockOffset = 0; // Номер первого столбца текущего блока на листе Excel.
+        // Для каждого блока выделяем массивы под параметры его столбцов.
+        for (int block = 0; block < blockCount; block++) {
+            int columnCount = listData.get(block)[0].length;
+            sheetColumns[block] = new int[columnCount];
+            columnUnits[block] = new UnitOutput[columnCount];
+            columnStyles[block] = new CellStyle[columnCount];
+            // Для каждого столбца определяем номер на листе, единицу и стиль для всех строк.
+            for (int column = 0; column < columnCount; column++) {
+                UnitOutput unit = unitMatching.getUnit(block, column, listInternalOffsets, unitOutput);
+                sheetColumns[block][column] = blockOffset + column;
+                columnUnits[block][column] = unit;
+                columnStyles[block][column] = cellStyleNumber.getUnitStyle(unit);
+            }
+            // В блоке высот вспомогательный столбец пропускается при экспорте.
+            blockOffset += block == 0 ? columnCount - 1 : columnCount;
+        }
 
         if (unitInput[0] == UnitInput.Kilometer) {
             outputAltitudeInc = outputAltitudeInc * 1000.0;
@@ -45,28 +64,15 @@ public class ExportData {
             // создание строки
             rowData = sheet.createRow((short) rowSheetInc + localVerticalOffset + globalVerticalOffset);
 
-            // перебираем хранилище данных
-            for (int listDataIndex = 0; listDataIndex <= listData.size() - 1; listDataIndex++) {
+            // Берём текущую строку каждого блока и используем готовые параметры её столбцов.
+            for (int listDataIndex = 0; listDataIndex < blockCount; listDataIndex++) {
+                double[] values = listData.get(listDataIndex)[rowDataArray];
 
-                // рассчет смещений блоков
-                if (listDataIndex == 0) {
-
-                    offset = 0;
-                }
-                else {
-                    offset = listData.get(listDataIndex - 1)[0].length + offset;
-                }
-
-                // в хранилище перебираем соответствующий массив данных
-                for (int column = 0; column <= listData.get(listDataIndex)[0].length - 1; column++) {
-
-                    // задаем временной переменной текущее значение
-                    currentValue = listData.get(listDataIndex)[rowDataArray][column];
-
-                    // конвертация и запись в ячейку
-                    // возврат единиц измерения и стилей из сопоставителей
-                    unit = unitMatching.getUnit(listDataIndex, column, listInternalOffsets, unitOutput);
-                    style = cellStyleNumber.getUnitStyle(unit);
+                for (int column = 0; column < sheetColumns[listDataIndex].length; column++) {
+                    double currentValue = values[column];
+                    int sheetColumn = sheetColumns[listDataIndex][column];
+                    UnitOutput unit = columnUnits[listDataIndex][column];
+                    CellStyle style = columnStyles[listDataIndex][column];
 
                     // экспорт. отрицательные высоты и параметры атмосферы экспортируются
                     // блок высот. "вспомогательный" столбец экспортироваться не должен.
@@ -77,16 +83,15 @@ public class ExportData {
                         if (column == listInternalOffsets.get(0)[0]) {
                             currentValue = unitConverter.getSIToUnitOutput(unit, currentValue);
                         }
-                        cell = rowData.createCell(column + offset);
+                        cell = rowData.createCell(sheetColumn);
                         cell.setCellValue(Precision.round(currentValue, unit.getUnitPrecision()));  // присвоение ячейке округленного значения
                         cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
                     }
 
-                    // блок параметров атмосферы. здесь и далее в индексе строки введено смещение в лево -1 т.к. в блоке высот есть лишний столбец, который учитывается при рассчете offset
+                    // Блок параметров атмосферы.
                     if (listDataIndex == 1) {
 
-                        //rowData.createCell(column + offset).setCellValue(outputUnitConvert.getUnitOutput(unit, currentValue)); - старая версия
-                        cell = rowData.createCell(column + offset - 1);
+                        cell = rowData.createCell(sheetColumn);
                         cell.setCellValue(Precision.round(unitConverter.getSIToUnitOutput(unit, currentValue), unit.getUnitPrecision()));  // присвоение ячейке округленного значения
                         cell.setCellStyle(style);                                                                                           // присвоение ячейки ей соответствующего стиля
                     }
@@ -95,14 +100,14 @@ public class ExportData {
                     // а вот отрицательные скорости не экспортируются.
                     if ((listDataIndex >= 2) & (currentValue >= 0.0)){
 
-                        cell = rowData.createCell(column + offset - 1);
+                        cell = rowData.createCell(sheetColumn);
                         cell.setCellValue(Precision.round(unitConverter.getSIToUnitOutput(unit, currentValue), unit.getUnitPrecision()));
                         cell.setCellStyle(style);
                     }
                     // вместо них создается пустая ячейка
-                    if ((listDataIndex >= 2) & (currentValue <= 0.0)){
+                    if ((listDataIndex >= 2) & (currentValue < 0.0)){
 
-                        rowData.createCell(column + offset - 1).setCellValue("");
+                        rowData.createCell(sheetColumn).setCellValue("");
                     }
 
                     // Ma граничен сверху Mc, при этом, если Ma превышает предельное значение, он обращается в -1.
