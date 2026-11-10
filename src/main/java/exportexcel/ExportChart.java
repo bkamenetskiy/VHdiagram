@@ -10,9 +10,15 @@ import org.apache.poi.xssf.usermodel.XSSFChart;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.openxmlformats.schemas.drawingml.x2006.chart.CTTitle;
+import org.openxmlformats.schemas.drawingml.x2006.main.STTextVerticalType;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ExportChart {
+    private static final double PLOT_TOP = 0.04;
+    private static final double PLOT_HEIGHT = 0.92;
 
     /**
      * Строит графики высоты от числа Маха и истинной скорости по данным листа Excel.
@@ -34,12 +40,16 @@ public class ExportChart {
         XSSFClientAnchor anchorVtas = drawingVtas.createAnchor(0, 0, 0, 0, size[2] + size[4], size[3], size[2]+size[0] + size[4], size[3]+size[1]); // создание прямоугольника по координатам двух точек - верхней левой и правой нижней
         XSSFChart chartVtas = drawingVtas.createChart(anchorVtas);                                                                  // добавление в лабуду графика
 
-        XDDFScatterChartData dataMach = createScatterData(chartMach, "M", "0.0", unitOutput[0]);
-        XDDFScatterChartData dataVtas = createScatterData(chartVtas, "Vtas, " + unitOutput[2].getUnitName(),
-                "0", unitOutput[0]);
-
         int firstRow = globalVerticalOffset + localVerticalOffset;
         int altitudeColumn = listInternalOffsets.get(0)[0];
+        int lastAltitudeRow = firstRow + Arrays.stream(rowEndIndex).max().orElse(0);
+        double minAltitude = sheet.getRow(firstRow).getCell(altitudeColumn).getNumericCellValue();
+        double maxAltitude = sheet.getRow(lastAltitudeRow).getCell(altitudeColumn).getNumericCellValue();
+        double xTitleY = getHorizontalAxisTitleY(minAltitude, maxAltitude);
+        XDDFScatterChartData dataMach = createScatterData(chartMach, "M", "0.0", unitOutput[0], 0.93, xTitleY);
+        XDDFScatterChartData dataVtas = createScatterData(chartVtas, "Vtas, " + unitOutput[2].getUnitName(),
+                "0", unitOutput[0], 0.86, xTitleY);
+
         int[] velocityOffsets = listInternalOffsets.get(2);
         // Первый блок скоростей начинается после высоты и атмосферы. Вспомогательная высота пропускается.
         int velocityColumn = listData.get(0)[0].length + listData.get(1)[0].length - 1;
@@ -70,8 +80,9 @@ public class ExportChart {
      * Настраивает область построения, числовые оси, сетку и стиль точечной диаграммы.
      * Задаёт формат подписей осей независимо от формата ячеек.
      */
-    private XDDFScatterChartData createScatterData(XSSFChart chart, String xTitle, String xNumberFormat, UnitOutput altitudeUnit) {
-        configureChartLayout(chart);
+    private XDDFScatterChartData createScatterData(XSSFChart chart, String xTitle, String xNumberFormat,
+                                                  UnitOutput altitudeUnit, double xTitleX, double xTitleY) {
+        configureChartLayout(chart, xTitleY);
         chart.displayBlanksAs(DisplayBlanks.GAP);
 
         XDDFValueAxis xAxis = chart.createValueAxis(AxisPosition.BOTTOM);
@@ -86,6 +97,11 @@ public class ExportChart {
 
         for (var axis : chart.getCTChart().getPlotArea().getValAxList()) {
             axis.getNumFmt().setSourceLinked(false);
+            if (axis.getAxId().getVal() == xAxis.getId()) {
+                styleAxisTitle(axis.getTitle(), xTitleX, xTitleY);
+            } else {
+                styleAxisTitle(axis.getTitle(), 0.07, 0.07);
+            }
         }
 
         XDDFScatterChartData data = (XDDFScatterChartData) chart.createData(ChartTypes.SCATTER, xAxis, yAxis);
@@ -96,7 +112,7 @@ public class ExportChart {
     /**
      * Настраивает прямоугольное полотно, область построения и легенду у правого края.
      */
-    private void configureChartLayout(XSSFChart chart) {
+    private void configureChartLayout(XSSFChart chart, double xTitleY) {
         chart.getCTChartSpace().addNewRoundedCorners().setVal(false);
 
         XDDFManualLayout plotLayout = chart.getOrAddManualLayout();
@@ -105,10 +121,10 @@ public class ExportChart {
         plotLayout.setYMode(LayoutMode.EDGE);
         plotLayout.setWidthMode(LayoutMode.FACTOR);
         plotLayout.setHeightMode(LayoutMode.FACTOR);
-        plotLayout.setX(0.11);
-        plotLayout.setY(0.04);
-        plotLayout.setWidthRatio(0.87);
-        plotLayout.setHeightRatio(0.87);
+        plotLayout.setX(0.06);
+        plotLayout.setY(PLOT_TOP);
+        plotLayout.setWidthRatio(0.92);
+        plotLayout.setHeightRatio(PLOT_HEIGHT);
 
         XDDFChartLegend legend = chart.getOrAddLegend();
         legend.setPosition(LegendPosition.RIGHT);
@@ -117,7 +133,55 @@ public class ExportChart {
         legendLayout.setXMode(LayoutMode.EDGE);
         legendLayout.setYMode(LayoutMode.EDGE);
         legendLayout.setX(0.905);
-        legendLayout.setY(0.60);
+        // При пересечении с подписью оси располагаем легенду выше неё.
+        legendLayout.setY(xTitleY >= 0.54 && xTitleY < 0.805 ? xTitleY - 0.21 : 0.60);
+    }
+
+    /**
+     * Размещает горизонтальную подпись шрифтом 12 пт внутри полотна, у конца оси.
+     */
+    private void styleAxisTitle(CTTitle axisTitle, double x, double y) {
+        XDDFTitle title = new XDDFTitle(null, axisTitle);
+        title.setOverlay(true);
+        var body = title.getBody();
+        body.getXmlObject().getBodyPr().setVert(STTextVerticalType.HORZ);
+        body.getXmlObject().getBodyPr().setRot(0);
+        var titleFont = body.getParagraph(0).getDefaultRunProperties();
+        titleFont.setFontSize(12.0);
+        titleFont.setBold(true);
+
+        XDDFManualLayout layout = new XDDFManualLayout(axisTitle.getLayout());
+        layout.setXMode(LayoutMode.EDGE);
+        layout.setYMode(LayoutMode.EDGE);
+        layout.setX(x);
+        layout.setY(y);
+    }
+
+    /**
+     * Оценивает положение пересечения горизонтальной оси с нулём высоты по округлённому диапазону.
+     * Excel по-прежнему подбирает границы осей автоматически.
+     */
+    private double getHorizontalAxisTitleY(double minAltitude, double maxAltitude) {
+        if (minAltitude >= 0) {
+            return PLOT_TOP + PLOT_HEIGHT - 0.06;
+        }
+        if (maxAltitude <= 0) {
+            return PLOT_TOP + 0.02;
+        }
+
+        double approximateStep = (maxAltitude - minAltitude) / 8;
+        double decade = Math.pow(10, Math.floor(Math.log10(approximateStep)));
+        double step = 10 * decade;
+        for (double multiplier : new double[]{1, 2, 2.5, 5}) {
+            if (multiplier * decade >= approximateStep) {
+                step = multiplier * decade;
+                break;
+            }
+        }
+        double lowerTick = Math.floor(minAltitude / step) * step;
+        double upperTick = Math.ceil(maxAltitude / step) * step;
+        double crossing = PLOT_TOP + PLOT_HEIGHT * upperTick / (upperTick - lowerTick);
+        return crossing < PLOT_TOP + 0.06 ? crossing + 0.02 : crossing - 0.06;
     }
 
     /**

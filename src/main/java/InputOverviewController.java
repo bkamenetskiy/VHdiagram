@@ -4,6 +4,7 @@ import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.Desktop;
@@ -16,6 +17,7 @@ public class InputOverviewController {
 
     private static final Pattern DECIMAL_INPUT = Pattern.compile("[0-9]*(?:\\.[0-9]*)?");
     private static final Pattern SIGNED_DECIMAL_INPUT = Pattern.compile("-?" + DECIMAL_INPUT.pattern());
+    private static final Pattern POSITIVE_INTEGER_INPUT = Pattern.compile("(?:[1-9][0-9]*)?");
     private static final String SAVE_ERROR = "Ошибка при сохранении файла";
 
     private final UnitInput[] unitInput = new UnitInput[2];
@@ -57,11 +59,19 @@ public class InputOverviewController {
     private TextField textField8;   // H max
     @FXML
     private TextField textField9;   // dH
+    @FXML
+    private CheckBox simplifiedPlotting;
+    @FXML
+    private HBox plotStepControls;
+    @FXML
+    private TextField plotStepField;
+    @FXML
+    private Label plotStepUnit;
 
 
     /**
-     * Настраивает единицы измерения и фильтры числовых полей.
-     * Кнопка расчёта доступна, когда заполнены все поля.
+     * Настраивает единицы измерения, числовые поля и отображение шага построения.
+     * Кнопка расчёта доступна, когда заполнены все видимые поля ввода.
      */
     @FXML
     protected void initialize() {
@@ -128,12 +138,26 @@ public class InputOverviewController {
             field.setTextFormatter(new TextFormatter<>(change -> filterDecimalInput(change, inputPattern)));
         }
 
+        configurePlotStep();
         Observable[] fieldLengths = Arrays.stream(numericFields)
                 .map(TextField::lengthProperty)
                 .toArray(Observable[]::new);
         button1.disableProperty().bind(Bindings.createBooleanBinding(
-                () -> Arrays.stream(numericFields).anyMatch(field -> field.getLength() == 0), fieldLengths));
+                () -> Arrays.stream(numericFields).anyMatch(field -> field.getLength() == 0), fieldLengths)
+                .or(simplifiedPlotting.selectedProperty().and(plotStepField.textProperty().isEmpty())));
         savedFileLink.managedProperty().bind(savedFileLink.visibleProperty());
+    }
+
+    /**
+     * Показывает шаг при упрощённом построении и выводит выбранную единицу исходной высоты.
+     * Фильтр допускает положительные целые числа и позволяет очистить поле.
+     */
+    private void configurePlotStep() {
+        plotStepControls.visibleProperty().bind(simplifiedPlotting.selectedProperty());
+        plotStepControls.managedProperty().bind(plotStepControls.visibleProperty());
+        plotStepUnit.textProperty().bind(comboBox1.valueProperty());
+        plotStepField.setTextFormatter(new TextFormatter<>(change ->
+                POSITIVE_INTEGER_INPUT.matcher(change.getControlNewText()).matches() ? change : null));
     }
 
     /**
